@@ -1,0 +1,18 @@
+{
+    "in_game_data": [
+        {
+            "IF_PLAYED": 0,
+            "CHARACTER": 1,
+            "PET": 1
+        }
+    ],
+    "player_data": [
+        {
+            "NAME": "asdsda",
+            "LEVEL": 1,
+            "XP": 0,
+            "HP": 100,
+            "MONEY": 0
+        }
+    ]
+}

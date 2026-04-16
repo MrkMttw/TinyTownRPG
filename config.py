@@ -1,0 +1,16 @@
+import json
+
+
+WIN_WIDTH = 1280
+WIN_HEIGHT = 720
+TILESIZE = 64
+FPS = 60
+
+IF_PLAYED = 0 # 0 - Not yet 1 - Yes
+CHARACTER = 1 #1 - F 2 - M
+PET = 1 #1 - Sausage
+PET_SIZE = 32
+PET_SPEED = 1
+PLAYER_LAYER = 1
+PLAYER_SPEED = 1
+#GROUND_LAYER = 1
