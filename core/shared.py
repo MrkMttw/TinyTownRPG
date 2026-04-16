@@ -5,7 +5,7 @@ from core.config import WIN_WIDTH, WIN_HEIGHT
 pygame.init()
 
 SCREEN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
-pygame.display.set_caption("Main Menu")
+pygame.display.set_caption("Tiny Town")
 
 # load assets
 bg = pygame.image.load("assets/Background4.png").convert()

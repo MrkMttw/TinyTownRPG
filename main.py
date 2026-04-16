@@ -2,6 +2,7 @@ import pygame, sys, math, json
 from core.shared import *
 from screens.homescreen import play, options
 from screens.battlefield import battlefield_screen
+from screens.queue import queue_screen
 from screens.tutorial import *
 from core.game_engine import Game
 from components.button import Button
@@ -97,7 +98,13 @@ def main_menu():
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
                     options()
                 if BATTLE_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    battlefield_screen()
+                    player_hp = 100
+                    enemy_hp = 100
+                    battle_ended = False
+                    
+                    while not battle_ended:
+                        action_queue = queue_screen()
+                        player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp)
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()
