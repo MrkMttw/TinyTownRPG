@@ -1,41 +1,18 @@
 import pygame, sys, math, json
+from core.shared import *
 from screens.homescreen import play, options
+from screens.battlefield import battlefield_screen
 from screens.tutorial import *
 from core.game_engine import Game
 from components.button import Button
 from components.textbox import TextBox
-from core.config import *
 from screens.character_selection import character_selection_screen, character_selected
 from core.gamedata import gamedata, update_game_data
 
-
 pygame.init()
-
-# screen
-
-SCREEN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
-pygame.display.set_caption("Main Menu")
-
-# load assets
-bg = pygame.image.load("assets/Background4.png").convert()
-LOGO = pygame.image.load("assets/Logo.png")
-OUTLINE = pygame.image.load("assets/Outline.png")
-OUTLINE = pygame.transform.scale(OUTLINE, (400, 300))
-BOY = pygame.image.load("assets/boyslct.png")
-GIRL = pygame.image.load("assets/girlslct.png")
-bg_width = bg.get_width()
-bg = pygame.transform.scale(bg, (WIN_WIDTH, WIN_HEIGHT))
-BUTTON1 = pygame.image.load("assets/Button1.png")
-BUTTON2 = pygame.image.load("assets/Button2.png")
 
 # scrolling variables
 scroll = 0
-tiles = math.ceil(WIN_WIDTH / bg_width) + 1
-
-
-# font
-def get_font(size):
-    return pygame.font.Font("assets/font.ttf", size)
 
 
 # ================= MAIN MENU =================
@@ -49,7 +26,7 @@ def main_menu():
         PLAY_BUTTON: play button
         OPTIONS_BUTTON: options button
         QUIT_BUTTON: quit button
-
+        BATTLE_BUTTON: battle button
     Parameters:
         None
     """
@@ -97,7 +74,16 @@ def main_menu():
             hovering_color="#FFE14D",
         )
 
-        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
+        BATTLE_BUTTON = Button(
+            image=BUTTON1,
+            pos=(640, 570),
+            text_input="BATTLE",
+            font=get_font(40),
+            base_color="BLACK",
+            hovering_color="#FFE14D",
+        )
+
+        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON, BATTLE_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
             button.update(SCREEN)
 
@@ -107,35 +93,11 @@ def main_menu():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play(
-                        SCREEN,
-                        tiles,
-                        bg,
-                        bg_width,
-                        BOY,
-                        GIRL,
-                        OUTLINE,
-                        BUTTON1,
-                        BUTTON2,
-                        Button,
-                        get_font,
-                        main_menu,
-                    )
+                    play()
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    options(
-                        SCREEN,
-                        tiles,
-                        bg,
-                        bg_width,
-                        BOY,
-                        GIRL,
-                        OUTLINE,
-                        BUTTON1,
-                        BUTTON2,
-                        Button,
-                        get_font,
-                        main_menu,
-                    )
+                    options()
+                if BATTLE_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    battlefield_screen()
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()

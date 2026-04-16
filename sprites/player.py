@@ -3,6 +3,7 @@ from core.config import *
 import math
 from core.gamedata import gamedata
 
+
 class Player(pygame.sprite.Sprite):
     """
     Player class
@@ -21,12 +22,13 @@ class Player(pygame.sprite.Sprite):
         up_animations: list of up animations
         left_animations: list of left animations
         right_animations: list of right animations
-    
+
     Parameters:
         game: game object
         x: x coordinate
         y: y coordinate
     """
+
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER
@@ -44,7 +46,7 @@ class Player(pygame.sprite.Sprite):
         self.facing = "down"
         self.animation_loop = 1
 
-        #LOAD CHARACTER
+        # LOAD CHARACTER
         char_val = gamedata["in_game_data"][0]["CHARACTER"]
         if char_val == 1:
             path = "assets/characters/Girl"
@@ -52,27 +54,29 @@ class Player(pygame.sprite.Sprite):
         elif char_val == 2:
             path = "assets/characters/Boy"
             CHARACTER_NAME = "boy"
-        
-        # ANIMATIONS    
+
+        # ANIMATIONS
         self.down_animations = self.load_animation_set(path, CHARACTER_NAME, "down")
         self.up_animations = self.load_animation_set(path, CHARACTER_NAME, "up")
         self.left_animations = self.load_animation_set(path, CHARACTER_NAME, "left")
         self.right_animations = self.load_animation_set(path, CHARACTER_NAME, "right")
-        
-        
 
         self.image = self.down_animations[0]
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
+
     def load_animation_set(self, path, name, direction):
         frames = [
             pygame.image.load(f"{path}/{name}_{direction}_stand.png"),
             pygame.image.load(f"{path}/{name}_{direction}_walk1.png"),
-            pygame.image.load(f"{path}/{name}_{direction}_walk2.png")
-            ]
-        return [pygame.transform.scale(img, (self.width, self.height)) for img in frames]
+            pygame.image.load(f"{path}/{name}_{direction}_walk2.png"),
+        ]
+        return [
+            pygame.transform.scale(img, (self.width, self.height)) for img in frames
+        ]
+
     def animation(self):
         if self.facing == "down":
             if self.y_change == 0:
