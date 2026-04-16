@@ -1,11 +1,13 @@
 import pygame, sys, math, json
-import tutorial
-from game_engine import Game
-from button import Button
-from textbox import TextBox
-from config import *
-from character_selection import character_selection_screen, character_selected
-from gamedata import gamedata, update_game_data
+from screens.homescreen import play, options
+from screens.tutorial import *
+from core.game_engine import Game
+from components.button import Button
+from components.textbox import TextBox
+from core.config import *
+from screens.character_selection import character_selection_screen, character_selected
+from core.gamedata import gamedata, update_game_data
+
 
 pygame.init()
 
@@ -30,49 +32,11 @@ BUTTON2 = pygame.image.load("assets/Button2.png")
 scroll = 0
 tiles = math.ceil(WIN_WIDTH / bg_width) + 1
 
+
 # font
 def get_font(size):
     return pygame.font.Font("assets/font.ttf", size)
 
-# ================= PLAY =================
-def play():
-    if gamedata["in_game_data"][0]["IF_PLAYED"] == 0:  # first time playing
-        update_game_data()
-        tutorial.character_selection(
-            SCREEN, tiles, bg, bg_width, BOY, GIRL, OUTLINE, BUTTON1, BUTTON2, 
-            Button, get_font, character_selected, main_menu, gamedata, update_game_data
-            )
-        
-    #gamedata["in_game_data"][0]["IF_PLAYED"] = 1
-    
-    game = Game(SCREEN)
-    game.new()
-
-    while game.playing:
-        game.events()
-        game.update()
-        game.draw()
-
-    pygame.event.clear()  # prevent input bugs
-    return
-
-# ================= OPTIONS =================
-def options():
-    # Callback for when a character is selected in Options
-    def save_and_confirm(char_id):
-        gamedata["in_game_data"][0]["CHARACTER"] = char_id
-        update_game_data()
-        return character_selected(SCREEN, tiles, bg, bg_width, get_font, BUTTON2, Button, main_menu)  # Show confirmation screen
-
-    # Callback for the back button
-    def go_back():
-        return # Simply exits the function to return to main_menu loop
-
-    # Use the separated character selection screen
-    character_selection_screen(
-        SCREEN, tiles, bg, bg_width, BOY, GIRL, OUTLINE, BUTTON1, BUTTON2, 
-        Button, get_font, save_and_confirm, go_back
-    )
 
 # ================= MAIN MENU =================
 def main_menu():
@@ -85,7 +49,7 @@ def main_menu():
         PLAY_BUTTON: play button
         OPTIONS_BUTTON: options button
         QUIT_BUTTON: quit button
-    
+
     Parameters:
         None
     """
@@ -106,17 +70,32 @@ def main_menu():
         SCREEN.blit(LOGO, LOGO_RECT)
 
         # buttons
-        PLAY_BUTTON = Button(image=BUTTON1, pos=(640, 450), 
-                             text_input="PLAY", font=get_font(40), 
-                             base_color="BLACK", hovering_color="#FFE14D")
+        PLAY_BUTTON = Button(
+            image=BUTTON1,
+            pos=(640, 450),
+            text_input="PLAY",
+            font=get_font(40),
+            base_color="BLACK",
+            hovering_color="#FFE14D",
+        )
 
-        OPTIONS_BUTTON = Button(image=BUTTON1, pos=(380, 510), 
-                                text_input="OPTIONS", font=get_font(35), 
-                                base_color="BLACK", hovering_color="#FFE14D")
+        OPTIONS_BUTTON = Button(
+            image=BUTTON1,
+            pos=(380, 510),
+            text_input="OPTIONS",
+            font=get_font(35),
+            base_color="BLACK",
+            hovering_color="#FFE14D",
+        )
 
-        QUIT_BUTTON = Button(image=BUTTON1, pos=(900, 510), 
-                             text_input="QUIT", font=get_font(40), 
-                             base_color="BLACK", hovering_color="#FFE14D")
+        QUIT_BUTTON = Button(
+            image=BUTTON1,
+            pos=(900, 510),
+            text_input="QUIT",
+            font=get_font(40),
+            base_color="BLACK",
+            hovering_color="#FFE14D",
+        )
 
         for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
             button.changeColor(MENU_MOUSE_POS)
@@ -128,14 +107,41 @@ def main_menu():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play()
+                    play(
+                        SCREEN,
+                        tiles,
+                        bg,
+                        bg_width,
+                        BOY,
+                        GIRL,
+                        OUTLINE,
+                        BUTTON1,
+                        BUTTON2,
+                        Button,
+                        get_font,
+                        main_menu,
+                    )
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    options()
+                    options(
+                        SCREEN,
+                        tiles,
+                        bg,
+                        bg_width,
+                        BOY,
+                        GIRL,
+                        OUTLINE,
+                        BUTTON1,
+                        BUTTON2,
+                        Button,
+                        get_font,
+                        main_menu,
+                    )
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()
                     sys.exit()
 
         pygame.display.update()
+
 
 update_game_data()  # ensure game data is initialized
 

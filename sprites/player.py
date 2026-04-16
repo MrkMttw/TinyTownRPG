@@ -1,7 +1,7 @@
 import pygame
-from config import *
+from core.config import *
 import math
-from gamedata import gamedata
+from core.gamedata import gamedata
 
 class Player(pygame.sprite.Sprite):
     """

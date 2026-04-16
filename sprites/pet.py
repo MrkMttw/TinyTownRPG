@@ -1,7 +1,8 @@
 import pygame
-from config import *
+from core.config import *
 import math
-from gamedata import gamedata
+from core.gamedata import gamedata
+
 
 class Pet(pygame.sprite.Sprite):
     """
@@ -18,11 +19,12 @@ class Pet(pygame.sprite.Sprite):
         up_animations: list of up animations
         left_animations: list of left animations
         right_animations: list of right animations
-    
+
     Parameters:
         game: game object
         player: player object
     """
+
     def __init__(self, game, player):
         self.game = game
         self.player = player
@@ -32,7 +34,7 @@ class Pet(pygame.sprite.Sprite):
 
         self.width = PET_SIZE
         self.height = PET_SIZE
-        
+
         self.facing = "down"
         self.animation_loop = 1
 
@@ -48,7 +50,7 @@ class Pet(pygame.sprite.Sprite):
         self.right_animations = self.load_animation_set(path, PET_NAME, "right")
 
         self.image = self.down_animations[0]
-        
+
         self.rect = self.image.get_rect()
         self.pos_x = float(player.rect.x)
         self.pos_y = float(player.rect.y)
@@ -60,9 +62,11 @@ class Pet(pygame.sprite.Sprite):
         frames = [
             pygame.image.load(f"{path}/{name}_{direction}_stand.png"),
             pygame.image.load(f"{path}/{name}_{direction}_walk1.png"),
-            pygame.image.load(f"{path}/{name}_{direction}_walk2.png")
-            ]
-        return [pygame.transform.scale(img, (self.width, self.height)) for img in frames]
+            pygame.image.load(f"{path}/{name}_{direction}_walk2.png"),
+        ]
+        return [
+            pygame.transform.scale(img, (self.width, self.height)) for img in frames
+        ]
 
     def follow_player(self):
         self.dx = self.player.rect.x - self.pos_x

@@ -1,8 +1,8 @@
 import pygame, sys, json
-from button import Button
-from textbox import TextBox
-from config import *
-from character_selection import character_selection_screen # Import the new file
+from components.button import Button
+from components.textbox import TextBox
+from core.config import *
+from screens.character_selection import character_selection_screen
 
 def character_selection(SCREEN, tiles, bg, bg_width, BOY, GIRL, OUTLINE, BUTTON1, BUTTON2, ButtonClass, get_font, on_character_selected, back, gamedata, update_game_data):
     

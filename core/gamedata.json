@@ -2,7 +2,7 @@
     "in_game_data": [
         {
             "IF_PLAYED": 0,
-            "CHARACTER": 1,
+            "CHARACTER": 2,
             "PET": 1
         }
     ],

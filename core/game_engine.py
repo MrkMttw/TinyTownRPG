@@ -2,7 +2,8 @@ import pygame
 import sys
 from sprites.player import Player
 from sprites.pet import Pet
-from config import *
+from core.config import *
+
 
 class Game:
     def __init__(self, screen):
