@@ -1,125 +1,12 @@
 import pygame
 import sys
-import random
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font, BUTTON1
 from components.button import Button
+from core.battle_loader import load_battle_assets, draw_health_bar
+from core.battle_mechanics import process_attack, process_queued_turn
 from core.gamedata import gamedata
 
-
-def load_battle_assets():
-    """
-    Load assets for the battle screen
-
-    Returns:
-    """
-    print("[DEBUG] Loading battle assets...")
-
-    bg = pygame.image.load("assets/maps/DomainExpansion.png").convert()
-    bg = pygame.transform.scale(bg, (WIN_WIDTH, WIN_HEIGHT))
-    print(f"[DEBUG] Background loaded, size: {bg.get_size()}")
-
-    char_id = gamedata["in_game_data"][0]["CHARACTER"]
-    print(f"[DEBUG] Character ID: {char_id}")
-
-    if char_id == 1:  # Girl
-        left_path = "assets/characters/Girl/girl_right_stand.png"
-    else:  # Boy
-        left_path = "assets/characters/Boy/boy_right_stand.png"
-
-    enemy_path = "assets/characters/Boy/boy_left_stand.png"
-
-    print(f"[DEBUG] Left path (player): {left_path}")
-    print(f"[DEBUG] Right path (enemy): {enemy_path}")
-
-    left_char = pygame.image.load(left_path).convert_alpha()
-    print(f"[DEBUG] Left char loaded, original size: {left_char.get_size()}")
-    left_char = pygame.transform.scale_by(left_char, 0.3)  # zoom in for battle portrait
-    print(f"[DEBUG] Left char scaled, new size: {left_char.get_size()}")
-
-    right_char = pygame.image.load(enemy_path).convert_alpha()
-    print(f"[DEBUG] Right char loaded, original size: {right_char.get_size()}")
-    right_char = pygame.transform.scale_by(right_char, 0.3)
-    print(f"[DEBUG] Right char scaled, new size: {right_char.get_size()}")
-
-
-    print(f"[DEBUG] Returning assets - left_char size: {left_char.get_size()}, right_char size: {right_char.get_size()}")
-    return bg, left_char, right_char
-
-
-def draw_health_bar(surface, x, y, width, height, current_hp, max_hp, name):
-    pygame.draw.rect(
-        surface, (0, 0, 0), (x - 2, y - 2, width + 4, height + 4)
-    )
-    pygame.draw.rect(surface, (255, 0, 0), (x, y, width, height))
-    ratio = max(0, current_hp) / max_hp
-    pygame.draw.rect(surface, (0, 255, 0), (x, y, width * ratio, height))
-
-    name_text = get_font(30).render(name, True, (255, 255, 255))
-    surface.blit(name_text, (x, y - 40))
-
-
-def process_attack(attacker, defender, is_break, defender_is_defending):
-    dmg_base = random.randint(10, 20)
-
-    if is_break:
-        if defender_is_defending:
-            dmg = int(dmg_base * 1.5)
-            msg = f"{attacker} BROKE defense! {dmg} DMG!"
-        else:
-            dmg = int(dmg_base * 0.5)
-            msg = f"{attacker} tried to break... missed! {dmg} DMG."
-    else:
-        if defender_is_defending:
-            dmg = int(dmg_base * 0.3)
-            msg = f"{defender} blocked! {dmg} DMG."
-        else:
-            dmg = dmg_base
-            msg = f"{attacker} attacks! {dmg} DMG!"
-
-    return dmg, msg
-
-
-def process_queued_turn(action_queue, turn_index, player_hp, enemy_hp, player_defending, enemy_defending):
-    """
-    Process a single turn from the action queue.
-    Returns: (new_player_hp, new_enemy_hp, new_player_defending, new_enemy_defending, battle_msg)
-    """
-    if turn_index >= len(action_queue):
-        return player_hp, enemy_hp, player_defending, enemy_defending, "Round complete!"
-
-    player_action = action_queue[turn_index]
-
-    # Process Player Action
-    if player_action == "defend":
-        player_defending = True
-        battle_msg = "Player defends!"
-    elif player_action == "attack":
-        dmg, msg = process_attack("Player", "Enemy", False, enemy_defending)
-        enemy_hp -= dmg
-        battle_msg = msg
-    elif player_action == "break":
-        dmg, msg = process_attack("Player", "Enemy", True, enemy_defending)
-        enemy_hp -= dmg
-        battle_msg = msg
-
-    # Check if enemy is defeated before enemy turn
-    if enemy_hp <= 0:
-        return player_hp, enemy_hp, player_defending, enemy_defending, battle_msg
-
-    # Process Enemy Turn (after player action)
-    action_choice = random.choice(["attack", "attack", "defend", "break"])
-    if action_choice == "defend":
-        enemy_defending = True
-        battle_msg += " | Enemy defends!"
-    else:
-        dmg, msg = process_attack("Enemy", "Player", action_choice == "break", player_defending)
-        player_hp -= dmg
-        battle_msg += f" | {msg}"
-
-    return player_hp, enemy_hp, player_defending, enemy_defending, battle_msg
-
-
-def battlefield_screen(action_queue=None, player_hp=100, enemy_hp=100):
+def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
     """
     Battle screen with queue-based turns.
     If action_queue is provided, executes all 3 turns automatically.
@@ -127,8 +14,27 @@ def battlefield_screen(action_queue=None, player_hp=100, enemy_hp=100):
     """
     bg, left_char, right_char = load_battle_assets()
 
-    player_max_hp = 100
-    enemy_max_hp = 100
+    # Load player attributes from gamedata
+    player_data = gamedata["player_data"][0]
+    player_max_hp = player_data.get("MAX_HP", 100)
+    player_level = player_data.get("LEVEL", 1)
+    # Calculate attack and defense based on level
+    player_attack = 15 + (player_level * 2)
+    player_defense = 15 + player_level
+
+    # Initialize HP if not provided (first round)
+    if player_hp is None:
+        player_hp = player_data.get("HP", player_max_hp)
+    if enemy_hp is None:
+        enemy_hp = 100
+
+    # Enemy attributes from opponent_data
+    opponent_data = gamedata.get("opponent_data", [{"LEVEL": 1}])[0]
+    enemy_max_hp = opponent_data.get("MAX_HP", 100)
+    enemy_level = opponent_data.get("LEVEL", 1)
+    # Calculate enemy attack and defense based on level
+    enemy_attack = 10 + (enemy_level * 2)
+    enemy_defense = 10 + enemy_level
 
     player_defending = False
     enemy_defending = False
@@ -187,7 +93,8 @@ def battlefield_screen(action_queue=None, player_hp=100, enemy_hp=100):
                     if action_queue and current_turn_index < max_turns:
                         player_hp, enemy_hp, player_defending, enemy_defending, battle_msg = process_queued_turn(
                             action_queue, current_turn_index,
-                            player_hp, enemy_hp, player_defending, enemy_defending
+                            player_hp, enemy_hp, player_defending, enemy_defending,
+                            player_attack, player_defense, enemy_attack, enemy_defense
                         )
                         current_turn_index += 1
                         state = "message"

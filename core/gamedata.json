@@ -2,7 +2,7 @@
     "in_game_data": [
         {
             "IF_PLAYED": 0,
-            "CHARACTER": 2,
+            "CHARACTER": 1,
             "PET": 1
         }
     ],
@@ -12,6 +12,7 @@
             "LEVEL": 1,
             "XP": 0,
             "HP": 100,
+            "MAX_HP": 100,
             "MONEY": 0
         }
     ],
@@ -21,6 +22,17 @@
             "LEVEL": 1,
             "XP": 0,
             "HP": 100,
+            "MAX_HP": 100,
+            "MONEY": 0
+        }
+    ],
+    "opponent_data": [
+        {
+            "NAME": "",
+            "LEVEL": 1,
+            "XP": 0,
+            "HP": 100,
+            "MAX_HP": 100,
             "MONEY": 0
         }
     ]
