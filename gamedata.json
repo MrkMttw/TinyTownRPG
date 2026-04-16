@@ -2,13 +2,13 @@
     "in_game_data": [
         {
             "IF_PLAYED": 0,
-            "CHARACTER": 1,
+            "CHARACTER": 2,
             "PET": 1
         }
     ],
     "player_data": [
         {
-            "NAME": "1234",
+            "NAME": "Matthew",
             "LEVEL": 1,
             "XP": 0,
             "HP": 100,

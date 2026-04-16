@@ -4,6 +4,29 @@ import math
 from gamedata import gamedata
 
 class Player(pygame.sprite.Sprite):
+    """
+    Player class
+
+    Attributes:
+        game: game object
+        x: x coordinate
+        y: y coordinate
+        width: width of the player
+        height: height of the player
+        x_change: x change
+        y_change: y change
+        facing: direction the player is facing
+        animation_loop: animation loop
+        down_animations: list of down animations
+        up_animations: list of up animations
+        left_animations: list of left animations
+        right_animations: list of right animations
+    
+    Parameters:
+        game: game object
+        x: x coordinate
+        y: y coordinate
+    """
     def __init__(self, game, x, y):
         self.game = game
         self._layer = PLAYER_LAYER

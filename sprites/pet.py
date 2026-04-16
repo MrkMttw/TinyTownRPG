@@ -4,6 +4,25 @@ import math
 from gamedata import gamedata
 
 class Pet(pygame.sprite.Sprite):
+    """
+    Pet class
+
+    Attributes:
+        game: game object
+        player: player object
+        width: width of the pet
+        height: height of the pet
+        facing: direction the pet is facing
+        animation_loop: animation loop
+        down_animations: list of down animations
+        up_animations: list of up animations
+        left_animations: list of left animations
+        right_animations: list of right animations
+    
+    Parameters:
+        game: game object
+        player: player object
+    """
     def __init__(self, game, player):
         self.game = game
         self.player = player

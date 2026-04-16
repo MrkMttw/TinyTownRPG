@@ -2,6 +2,7 @@ import pygame, sys, math, json
 import tutorial
 from game_engine import Game
 from button import Button
+from textbox import TextBox
 from config import *
 from character_selection import character_selection_screen, character_selected
 from gamedata import gamedata, update_game_data
@@ -75,6 +76,19 @@ def options():
 
 # ================= MAIN MENU =================
 def main_menu():
+    """
+    Main menu of the game
+
+    Attributes:
+        scroll: scroll position
+        MENU_MOUSE_POS: mouse position
+        PLAY_BUTTON: play button
+        OPTIONS_BUTTON: options button
+        QUIT_BUTTON: quit button
+    
+    Parameters:
+        None
+    """
     global scroll
     while True:
         MENU_MOUSE_POS = pygame.mouse.get_pos()

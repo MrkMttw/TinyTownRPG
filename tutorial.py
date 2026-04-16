@@ -1,5 +1,6 @@
 import pygame, sys, json
-from button import Button, TextBox
+from button import Button
+from textbox import TextBox
 from config import *
 from character_selection import character_selection_screen # Import the new file
 
