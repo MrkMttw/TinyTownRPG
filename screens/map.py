@@ -2,7 +2,9 @@ import pygame, math
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
 from core.config import TILESIZE, PLAYER_SPEED
 from core.gamedata import gamedata
+from core.character_location import NPC_POSITIONS
 from components.player_movements import MapPlayer
+from sprites.npc import NPC
 
 class Camera:
     """
@@ -50,6 +52,12 @@ def map_screen():
     # Create player at starting position
     player = MapPlayer(10, 7)  # Start at tile (10, 7)
 
+    # Create NPCs from positions defined in character_location.py
+    npcs = []
+    for tile_x, tile_y, sprite_path, name in NPC_POSITIONS:
+        npc = NPC(tile_x, tile_y, sprite_path, name)
+        npcs.append(npc)
+
     # Load background/tile (for now using a simple colored background)
     # You can replace this with actual tile loading
     background_color = (50, 150, 50)  # Green grass color
@@ -91,6 +99,10 @@ def map_screen():
 
         # Blit map surface with camera offset
         SCREEN.blit(map_surface, camera.camera.topleft)
+
+        # Draw NPCs with camera offset (before player so player appears on top)
+        for npc in npcs:
+            npc.draw(SCREEN, camera)
 
         # Draw player at center of screen (always)
         player_screen_x = WIN_WIDTH // 2 - player.width // 2

@@ -37,6 +37,9 @@ class GamePlayer:
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
+        
+        # Create mask for pixel-perfect collision
+        self.mask = pygame.mask.from_surface(self.image)
 
     def load_animation_set(self, path, name, direction):
         frames = [
@@ -57,6 +60,7 @@ class GamePlayer:
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.down_animations):
                     self.animation_loop = 1
+            self.mask = pygame.mask.from_surface(self.image)
 
         elif self.facing == "up":
             if self.y_change == 0:
@@ -66,6 +70,7 @@ class GamePlayer:
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.up_animations):
                     self.animation_loop = 1
+            self.mask = pygame.mask.from_surface(self.image)
 
         elif self.facing == "left":
             if self.x_change == 0:
@@ -75,6 +80,7 @@ class GamePlayer:
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.left_animations):
                     self.animation_loop = 1
+            self.mask = pygame.mask.from_surface(self.image)
 
         elif self.facing == "right":
             if self.x_change == 0:
@@ -84,6 +90,7 @@ class GamePlayer:
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.right_animations):
                     self.animation_loop = 1
+            self.mask = pygame.mask.from_surface(self.image)
 
     def movement(self):
         keys = pygame.key.get_pressed()
