@@ -70,58 +70,22 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.playing = False
+                if event.key == pygame.K_f:
+                    nearby_npc = self.get_nearby_npc()
+                    if nearby_npc:
+                        print(f"Interacting with {nearby_npc.name}!")
+                        # Add interaction logic here (e.g., show dialogue)
 
-    def check_npc_collision(self, player, npcs, move_dx, move_dy):
-        """Check and resolve collision between player and nearby NPCs using pixel-perfect mask collision.
-        
-        Prevents player movement in collision direction instead of teleporting.
-        
-        Args:
-            player: Player object with rect and mask
-            npcs: List of NPC objects with rect and mask
-            move_dx: Player's horizontal movement delta
-            move_dy: Player's vertical movement delta
-            
-        Returns:
-            True if collision was detected, False otherwise
-        """
-        collision_detected = False
-        
-        # Only check NPCs within reasonable distance (optimization)
-        # Check NPCs within 2 tiles of player (128 pixels)
-        check_distance = TILESIZE * 2
-        
-        for npc in npcs:
-            # Quick distance check before expensive collision detection
-            dx = abs(player.rect.centerx - npc.rect.centerx)
-            dy = abs(player.rect.centery - npc.rect.centery)
-            
-            if dx > check_distance or dy > check_distance:
-                continue
-            
-            # First check rect overlap (fast check)
-            if not player.rect.colliderect(npc.rect):
-                continue
-            
-            # Then check mask overlap (pixel-perfect check)
-            offset_x = npc.rect.x - player.rect.x
-            offset_y = npc.rect.y - player.rect.y
-            
-            if player.mask.overlap(npc.mask, (offset_x, offset_y)):
-                collision_detected = True
-                # Determine which side the collision is on and prevent movement in that direction
-                # Instead of snapping to edge, just revert the movement in that direction
-                
-                # Check which axis has more overlap
-                if dx > dy:
-                    # Horizontal collision - revert horizontal movement
-                    player.rect.x -= move_dx
-                else:
-                    # Vertical collision - revert vertical movement
-                    player.rect.y -= move_dy
-        
-        return collision_detected
-    
+    def get_nearby_npc(self):
+        """Check if player is within 1 tile of any NPC and return that NPC"""
+        player_center = self.player.rect.center
+        for npc in self.npcs:
+            npc_center = npc.rect.center
+            distance = math.sqrt((player_center[0] - npc_center[0])**2 + (player_center[1] - npc_center[1])**2)
+            if distance <= TILESIZE * 1.5:
+                return npc
+        return None
+
     def update(self):
         # Store player position before movement
         prev_x = self.player.rect.x
@@ -137,9 +101,6 @@ class Game:
         # Keep player within map bounds
         self.player.rect.x = max(0, min(self.player.rect.x, self.map_width - self.player.width))
         self.player.rect.y = max(0, min(self.player.rect.y, self.map_height - self.player.height))
-        
-        # Check NPC collision with movement deltas
-        self.check_npc_collision(self.player, self.npcs, dx, dy)
         
         self.camera.update(self.player)
 
@@ -160,26 +121,40 @@ class Game:
         # Blit map surface with camera offset
         self.screen.blit(map_surface, self.camera.camera.topleft)
 
-        # Draw NPCs with camera offset (before player and pet so they appear on top)
-        for npc in self.npcs:
-            npc.draw(self.screen, self.camera)
+        # Create renderable objects list for y-based layering
+        renderables = [
+            {'type': 'npc', 'obj': npc, 'y': npc.rect.bottom} for npc in self.npcs
+        ]
+        renderables.append({'type': 'pet', 'obj': self.pet, 'y': self.pet.rect.bottom})
+        renderables.append({'type': 'player', 'obj': self.player, 'y': self.player.rect.bottom})
 
-        # Draw pet with camera offset
-        pet_screen_x = self.pet.rect.x + self.camera.camera.x
-        pet_screen_y = self.pet.rect.y + self.camera.camera.y
-        self.screen.blit(self.pet.image, (pet_screen_x, pet_screen_y))
+        # Sort by y-coordinate (ascending) for proper depth layering
+        renderables.sort(key=lambda x: x['y'])
 
-        # Draw player with camera offset
-        player_screen_x = self.player.rect.x + self.camera.camera.x
-        player_screen_y = self.player.rect.y + self.camera.camera.y
-        self.screen.blit(self.player.image, (player_screen_x, player_screen_y))
+        # Draw sprites in sorted order
+        for renderable in renderables:
+            obj = renderable['obj']
+            screen_x = obj.rect.x + self.camera.camera.x
+            screen_y = obj.rect.y + self.camera.camera.y
+
+            if renderable['type'] == 'npc':
+                obj.draw(self.screen, self.camera)
+            else:
+                self.screen.blit(obj.image, (screen_x, screen_y))
 
         # Draw UI
-        info_text = get_font(20).render("WASD to move | ESC to exit", True, (255, 255, 255))
+        info_text = get_font(20).render("WASD to move | F to interact | ESC to exit", True, (255, 255, 255))
         self.screen.blit(info_text, (10, 10))
 
         coord_text = get_font(20).render(f"Pos: ({self.player.rect.x // TILESIZE}, {self.player.rect.y // TILESIZE})", True, (255, 255, 255))
         self.screen.blit(coord_text, (10, 35))
+
+        # Show interaction prompt when near NPC
+        nearby_npc = self.get_nearby_npc()
+        if nearby_npc:
+            prompt_text = get_font(24).render(f"Press F to interact with {nearby_npc.name}", True, (255, 255, 0))
+            prompt_rect = prompt_text.get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT - 50))
+            self.screen.blit(prompt_text, prompt_rect)
 
         pygame.display.update()
         self.clock.tick(FPS)

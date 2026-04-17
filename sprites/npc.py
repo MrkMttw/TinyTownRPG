@@ -19,10 +19,9 @@ class NPC:
         self.image = pygame.image.load(sprite_path)
         self.image = pygame.transform.scale(self.image, (self.width, self.height))
         
-        # Create rect for positioning
+        # Create rect for positioning (centered on tile)
         self.rect = self.image.get_rect()
-        self.rect.x = self.x
-        self.rect.y = self.y
+        self.rect.center = (self.x + TILESIZE // 2, self.y + TILESIZE // 2)
         
         # Create mask for pixel-perfect collision
         self.mask = pygame.mask.from_surface(self.image)

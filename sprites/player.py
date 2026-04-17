@@ -38,6 +38,11 @@ class GamePlayer:
         self.rect.x = self.x
         self.rect.y = self.y
         
+        # Create smaller collision hitbox (0.6x of tile size) for tighter collision
+        hitbox_size = int(TILESIZE * 0.6)
+        self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
+        self.hitbox.center = self.rect.center
+        
         # Create mask for pixel-perfect collision
         self.mask = pygame.mask.from_surface(self.image)
 
