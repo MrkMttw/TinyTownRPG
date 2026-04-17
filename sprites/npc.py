@@ -4,8 +4,9 @@ from core.config import TILESIZE
 
 class NPC:
     """NPC class for static characters on the map"""
-    def __init__(self, tile_x, tile_y, sprite_path, name="NPC"):
+    def __init__(self, tile_x, tile_y, sprite_path, name="NPC", dialogue="Hello there!"):
         self.name = name
+        self.dialogue = dialogue
         self.tile_x = tile_x
         self.tile_y = tile_y
         

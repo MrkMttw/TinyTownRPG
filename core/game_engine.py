@@ -3,10 +3,11 @@ import sys
 from core.config import *
 from core.gamedata import gamedata
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
-from core.character_location import NPC_POSITIONS
+from core.npc_location import NPC_POSITIONS
 from sprites.player import GamePlayer
 from sprites.pet import GamePet
 from sprites.npc import NPC
+from components.dialogue_box import DialogueBox
 import math
 
 
@@ -36,6 +37,7 @@ class Game:
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.running = True
+        self.dialogue_box = DialogueBox()
 
         # Map dimensions
         self.map_width = 30 * TILESIZE
@@ -55,8 +57,13 @@ class Game:
 
         # Create NPCs from positions defined in character_location.py
         self.npcs = []
-        for tile_x, tile_y, sprite_path, name in NPC_POSITIONS:
-            npc = NPC(tile_x, tile_y, sprite_path, name)
+        for npc_data in NPC_POSITIONS:
+            if len(npc_data) == 4:
+                tile_x, tile_y, sprite_path, name = npc_data
+                dialogue = "Hello there!"
+            else:
+                tile_x, tile_y, sprite_path, name, dialogue = npc_data
+            npc = NPC(tile_x, tile_y, sprite_path, name, dialogue)
             self.npcs.append(npc)
 
         # Background color
@@ -70,11 +77,14 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.playing = False
-                if event.key == pygame.K_f:
+                # Handle dialogue input first
+                if self.dialogue_box.active:
+                    self.dialogue_box.handle_input(event)
+                # Only handle F key for interaction if dialogue is not active
+                elif event.key == pygame.K_f:
                     nearby_npc = self.get_nearby_npc()
                     if nearby_npc:
-                        print(f"Interacting with {nearby_npc.name}!")
-                        # Add interaction logic here (e.g., show dialogue)
+                        self.dialogue_box.start_dialogue(nearby_npc.name, nearby_npc.dialogue)
 
     def get_nearby_npc(self):
         """Check if player is within 1 tile of any NPC and return that NPC"""
@@ -82,27 +92,32 @@ class Game:
         for npc in self.npcs:
             npc_center = npc.rect.center
             distance = math.sqrt((player_center[0] - npc_center[0])**2 + (player_center[1] - npc_center[1])**2)
-            if distance <= TILESIZE * 1.5:
+            if distance <= TILESIZE * 0.5:
                 return npc
         return None
 
     def update(self):
-        # Store player position before movement
-        prev_x = self.player.rect.x
-        prev_y = self.player.rect.y
+        # Update dialogue box typing animation
+        self.dialogue_box.update()
         
-        self.player.update()
-        self.pet.update()
-        
-        # Calculate movement deltas
-        dx = self.player.rect.x - prev_x
-        dy = self.player.rect.y - prev_y
-        
-        # Keep player within map bounds
-        self.player.rect.x = max(0, min(self.player.rect.x, self.map_width - self.player.width))
-        self.player.rect.y = max(0, min(self.player.rect.y, self.map_height - self.player.height))
-        
-        self.camera.update(self.player)
+        # Only update player and pet if dialogue is not active
+        if not self.dialogue_box.active:
+            # Store player position before movement
+            prev_x = self.player.rect.x
+            prev_y = self.player.rect.y
+            
+            self.player.update()
+            self.pet.update()
+            
+            # Calculate movement deltas
+            dx = self.player.rect.x - prev_x
+            dy = self.player.rect.y - prev_y
+            
+            # Keep player within map bounds
+            self.player.rect.x = max(0, min(self.player.rect.x, self.map_width - self.player.width))
+            self.player.rect.y = max(0, min(self.player.rect.y, self.map_height - self.player.height))
+            
+            self.camera.update(self.player)
 
     def draw(self):
         # Clear screen
@@ -149,12 +164,15 @@ class Game:
         coord_text = get_font(20).render(f"Pos: ({self.player.rect.x // TILESIZE}, {self.player.rect.y // TILESIZE})", True, (255, 255, 255))
         self.screen.blit(coord_text, (10, 35))
 
-        # Show interaction prompt when near NPC
+        # Show interaction prompt when near NPC (only if dialogue is not active)
         nearby_npc = self.get_nearby_npc()
-        if nearby_npc:
+        if nearby_npc and not self.dialogue_box.active:
             prompt_text = get_font(24).render(f"Press F to interact with {nearby_npc.name}", True, (255, 255, 0))
             prompt_rect = prompt_text.get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT - 50))
             self.screen.blit(prompt_text, prompt_rect)
+
+        # Draw dialogue box if active
+        self.dialogue_box.draw(self.screen)
 
         pygame.display.update()
         self.clock.tick(FPS)
