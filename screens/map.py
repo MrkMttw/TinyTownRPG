@@ -1,17 +1,27 @@
 import pygame
-import sys
-from core.config import *
-from core.gamedata import gamedata
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
+from core.config import TILESIZE, PLAYER_SPEED
+from core.gamedata import gamedata
 import math
 
 
 class Camera:
-    """Camera class to handle camera movement"""
+    """
+    Camera class to handle camera movement
+    The camera follows the player, keeping them centered on screen
+    """
     def __init__(self, width, height):
         self.camera = pygame.Rect(0, 0, width, height)
         self.width = width
         self.height = height
+
+    def apply(self, entity):
+        """Return a rect moved by the camera offset"""
+        return entity.rect.move(self.camera.topleft)
+
+    def apply_rect(self, rect):
+        """Return a rect moved by the camera offset"""
+        return rect.move(self.camera.topleft)
 
     def update(self, target):
         """Update camera position to follow target (player)"""
@@ -27,8 +37,11 @@ class Camera:
         self.camera = pygame.Rect(x, y, self.width, self.height)
 
 
-class GamePlayer:
-    """Player class for the game"""
+class MapPlayer:
+    """
+    Player class for the map screen
+    Handles movement and animation
+    """
     def __init__(self, x, y):
         self.x = x * TILESIZE
         self.y = y * TILESIZE
@@ -134,75 +147,74 @@ class GamePlayer:
         self.y_change = 0
 
 
-class Game:
-    def __init__(self, screen):
-        self.screen = screen
-        self.clock = pygame.time.Clock()
-        self.running = True
+def map_screen():
+    """
+    Map screen with camera system
+    Player stays centered, background moves
+    """
+    # Map dimensions (adjust based on your actual map size)
+    MAP_WIDTH = 20 * TILESIZE  # 20 tiles wide
+    MAP_HEIGHT = 15 * TILESIZE  # 15 tiles high
 
-        # Map dimensions
-        self.map_width = 20 * TILESIZE
-        self.map_height = 15 * TILESIZE
+    # Create camera
+    camera = Camera(MAP_WIDTH, MAP_HEIGHT)
 
-    def new(self):
-        self.playing = True
+    # Create player at starting position
+    player = MapPlayer(10, 7)  # Start at tile (10, 7)
 
-        # Create camera
-        self.camera = Camera(self.map_width, self.map_height)
+    # Load background/tile (for now using a simple colored background)
+    # You can replace this with actual tile loading
+    background_color = (50, 150, 50)  # Green grass color
 
-        # Create player at starting position
-        self.player = GamePlayer(10, 7)  # Start at tile (10, 7)
+    clock = pygame.time.Clock()
 
-        # Background color
-        self.background_color = (50, 150, 50)  # Green grass color
+    running = True
+    while running:
+        dt = clock.tick(60)
 
-    def events(self):
+        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.playing = False
-                self.running = False
+                pygame.quit()
+                return
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.playing = False
+                    return  # Exit map screen
 
-    def update(self):
-        self.player.update()
-        self.camera.update(self.player)
+        # Update player
+        player.update()
 
-    def draw(self):
+        # Update camera to follow player
+        camera.update(player)
+
         # Clear screen
-        self.screen.fill((30, 30, 30))
+        SCREEN.fill((30, 30, 30))
 
         # Draw background (with camera offset)
-        map_surface = pygame.Surface((self.map_width, self.map_height))
-        map_surface.fill(self.background_color)
+        # Create a surface for the map
+        map_surface = pygame.Surface((MAP_WIDTH, MAP_HEIGHT))
+        map_surface.fill(background_color)
 
-        # Draw grid lines to show movement
-        for x in range(0, self.map_width, TILESIZE):
-            pygame.draw.line(map_surface, (40, 140, 40), (x, 0), (x, self.map_height))
-        for y in range(0, self.map_height, TILESIZE):
-            pygame.draw.line(map_surface, (40, 140, 40), (0, y), (self.map_width, y))
+        # Draw grid lines to show movement (optional, for debugging)
+        for x in range(0, MAP_WIDTH, TILESIZE):
+            pygame.draw.line(map_surface, (40, 140, 40), (x, 0), (x, MAP_HEIGHT))
+        for y in range(0, MAP_HEIGHT, TILESIZE):
+            pygame.draw.line(map_surface, (40, 140, 40), (0, y), (MAP_WIDTH, y))
 
         # Blit map surface with camera offset
-        self.screen.blit(map_surface, self.camera.camera.topleft)
+        SCREEN.blit(map_surface, camera.camera.topleft)
 
-        # Draw player at center of screen
-        player_screen_x = WIN_WIDTH // 2 - self.player.width // 2
-        player_screen_y = WIN_HEIGHT // 2 - self.player.height // 2
-        self.screen.blit(self.player.image, (player_screen_x, player_screen_y))
+        # Draw player at center of screen (always)
+        player_screen_x = WIN_WIDTH // 2 - player.width // 2
+        player_screen_y = WIN_HEIGHT // 2 - player.height // 2
+        SCREEN.blit(player.image, (player_screen_x, player_screen_y))
 
         # Draw UI
         info_text = get_font(20).render("WASD to move | ESC to exit", True, (255, 255, 255))
-        self.screen.blit(info_text, (10, 10))
+        SCREEN.blit(info_text, (10, 10))
 
-        coord_text = get_font(20).render(f"Pos: ({self.player.rect.x // TILESIZE}, {self.player.rect.y // TILESIZE})", True, (255, 255, 255))
-        self.screen.blit(coord_text, (10, 35))
+        # Draw player coordinates
+        coord_text = get_font(20).render(f"Pos: ({player.rect.x // TILESIZE}, {player.rect.y // TILESIZE})", True, (255, 255, 255))
+        SCREEN.blit(coord_text, (10, 35))
 
         pygame.display.update()
-        self.clock.tick(FPS)
-
-    def main(self):
-        while self.playing:
-            self.events()
-            self.update()
-            self.draw()
