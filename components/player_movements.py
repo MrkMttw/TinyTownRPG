@@ -1,12 +1,12 @@
-import pygame
-from core.config import *
-import math
+import pygame, math
+from core.config import TILESIZE
 from core.gamedata import gamedata
 
 
-class GamePlayer:
+class MapPlayer:
     """
-    Player class for camera-based game (not using sprite groups)
+    Player class for the map screen
+    Handles movement and animation
     """
     def __init__(self, x, y):
         self.x = x * TILESIZE

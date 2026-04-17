@@ -4,59 +4,39 @@ import math
 from core.gamedata import gamedata
 
 
-class Pet(pygame.sprite.Sprite):
-    """
-    Pet class
-
-    Attributes:
-        game: game object
-        player: player object
-        width: width of the pet
-        height: height of the pet
-        facing: direction the pet is facing
-        animation_loop: animation loop
-        down_animations: list of down animations
-        up_animations: list of up animations
-        left_animations: list of left animations
-        right_animations: list of right animations
-
-    Parameters:
-        game: game object
-        player: player object
-    """
-
-    def __init__(self, game, player):
-        self.game = game
+class GamePet:
+    """Pet class for camera-based game (not using sprite groups)"""
+    def __init__(self, player):
         self.player = player
-        self._layer = PLAYER_LAYER - 1  # Draw behind the player
-        self.groups = self.game.all_sprites
-        pygame.sprite.Sprite.__init__(self, self.groups)
-
         self.width = PET_SIZE
         self.height = PET_SIZE
-
         self.facing = "down"
         self.animation_loop = 1
+        self.is_moving = False
 
-        # LOAD CHARACTER
+        # Load pet based on gamedata
         pet_val = gamedata["in_game_data"][0]["PET"]
         if pet_val == 1:
             path = "assets/pets/Sausage"
             PET_NAME = "sausage"
+        else:
+            path = "assets/pets/Sausage"
+            PET_NAME = "sausage"
 
+        # Load animations
         self.down_animations = self.load_animation_set(path, PET_NAME, "down")
         self.up_animations = self.load_animation_set(path, PET_NAME, "up")
         self.left_animations = self.load_animation_set(path, PET_NAME, "left")
         self.right_animations = self.load_animation_set(path, PET_NAME, "right")
 
         self.image = self.down_animations[0]
-
         self.rect = self.image.get_rect()
-        self.pos_x = float(player.rect.x)
+
+        # Position pet near player
+        self.pos_x = float(player.rect.x - TILESIZE)
         self.pos_y = float(player.rect.y)
         self.rect.x = int(self.pos_x)
         self.rect.y = int(self.pos_y)
-        self.is_moving = False
 
     def load_animation_set(self, path, name, direction):
         frames = [
@@ -85,10 +65,6 @@ class Pet(pygame.sprite.Sprite):
             self.facing = "right" if self.dx > 0 else "left"
         else:
             self.facing = "down" if self.dy > 0 else "up"
-
-    def update(self):
-        self.follow_player()
-        self.animation()
 
     def animation(self):
         if self.facing == "down":
@@ -126,3 +102,7 @@ class Pet(pygame.sprite.Sprite):
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.right_animations):
                     self.animation_loop = 1
+
+    def update(self):
+        self.follow_player()
+        self.animation()
