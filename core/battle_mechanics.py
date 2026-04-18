@@ -1,86 +1,169 @@
 import random
 
 
-def process_attack(attacker, defender, is_break, defender_is_defending, attacker_attack=15, defender_defense=5):
+def calculate_base_damage(attack_power):
     """
-    Process an attack action between two entities
+    Calculate base damage (uniform).
     
     Args:
-        attacker: Name of the attacking entity
-        defender: Name of the defending entity
-        is_break: Whether the attack is a break attack
-        defender_is_defending: Whether the defender is defending
-        attacker_attack: Attack power of the attacker
-        defender_defense: Defense power of the defender
+        attack_power: Base attack power of the attacker
         
     Returns:
-        tuple: (damage, message)
+        int: Base damage value
     """
-    # Calculate base damage
-    dmg_base = random.randint(attacker_attack - 5, attacker_attack + 5)
-
-    if is_break:
-        # Break attack
-        if defender_is_defending:
-            # Defender is defending, so break is more effective
-            dmg = int(dmg_base * 1.5) - defender_defense
-            dmg = max(1, dmg)  # Minimum 1 damage
-            msg = f"{attacker} BROKE defense! {dmg} DMG!"
-        else:
-            # Defender is not defending, so break is less effective
-            dmg = int(dmg_base * 0.5) - int(defender_defense * 0.5)
-            dmg = max(1, dmg)  # Minimum 1 damage
-            msg = f"{attacker} tried to break... missed! {dmg} DMG."
-    else:
-        if defender_is_defending:
-            
-            dmg = int(dmg_base * 0.3) - defender_defense
-            dmg = max(1, dmg)  # Minimum 1 damage
-            msg = f"{defender} blocked! {dmg} DMG."
-        else:
-            dmg = dmg_base - int(defender_defense * 0.5)
-            dmg = max(1, dmg)  # Minimum 1 damage
-            msg = f"{attacker} attacks! {dmg} DMG!"
-
-    return dmg, msg
+    return attack_power
 
 
-def process_queued_turn(action_queue, turn_index, player_hp, enemy_hp, player_defending, enemy_defending,
-                         player_attack=15, player_defense=5, enemy_attack=12, enemy_defense=4):
+def calculate_final_damage(base_damage, multiplier=1.0):
     """
-    Process a single turn from the action queue.
-    Returns: (new_player_hp, new_enemy_hp, new_player_defending, new_enemy_defending, battle_msg)
+    Calculate final damage after applying multiplier.
+    
+    Args:
+        base_damage: Base damage before modifications
+        multiplier: Damage multiplier (default 1.0)
+        
+    Returns:
+        int: Final damage (minimum 1)
+    """
+    dmg = int(base_damage * multiplier)
+    return max(1, dmg)
+
+
+def process_action_interaction(player_action, enemy_action, 
+                               player_hp, enemy_hp,
+                               player_attack, enemy_attack):
+    """
+    Process the interaction between player and enemy actions.
+    
+    Action Interaction Rules:
+    - attack to attack = both deal damage
+    - attack to defense = ignore full damage (no damage)
+    - attack to break armor = attack deals damage, break misses
+    - defense to defense = skip the turn
+    - break armor to defense = deal half the damage
+    - break armor to break armor = both deal full damage
+    
+    Args:
+        player_action: Player's action ('attack', 'defense', 'break')
+        enemy_action: Enemy's action ('attack', 'defense', 'break')
+        player_hp: Current player HP
+        enemy_hp: Current enemy HP
+        player_attack: Player's attack power
+        enemy_attack: Enemy's attack power
+        
+    Returns:
+        tuple: (new_player_hp, new_enemy_hp, battle_message)
+    """
+    battle_msg = ""
+    
+    # attack to attack = both deal damage
+    if player_action == "attack" and enemy_action == "attack":
+        player_dmg = calculate_final_damage(calculate_base_damage(enemy_attack))
+        enemy_dmg = calculate_final_damage(calculate_base_damage(player_attack))
+        player_hp -= player_dmg
+        enemy_hp -= enemy_dmg
+        battle_msg = f"Player attacks! {enemy_dmg} DMG! | Enemy attacks! {player_dmg} DMG!"
+    
+    # attack to defense = ignore full damage (no damage)
+    elif player_action == "attack" and enemy_action == "defense":
+        battle_msg = "Player attacks! Enemy defends! No damage dealt!"
+    
+    # defense to attack = ignore full damage (no damage)
+    elif player_action == "defense" and enemy_action == "attack":
+        battle_msg = "Player defends! Enemy attacks! No damage dealt!"
+    
+    # attack to break armor = attack deals damage, break misses
+    elif player_action == "attack" and enemy_action == "break":
+        enemy_dmg = calculate_final_damage(calculate_base_damage(player_attack))
+        enemy_hp -= enemy_dmg
+        battle_msg = f"Player attacks! {enemy_dmg} DMG! | Enemy tries to break... missed!"
+    
+    # break armor to attack = attack deals damage, break misses
+    elif player_action == "break" and enemy_action == "attack":
+        player_dmg = calculate_final_damage(calculate_base_damage(enemy_attack))
+        player_hp -= player_dmg
+        battle_msg = f"Player tries to break... missed! | Enemy attacks! {player_dmg} DMG!"
+    
+    # defense to defense = skip the turn
+    elif player_action == "defense" and enemy_action == "defense":
+        battle_msg = "Both defend! Turn skipped!"
+    
+    # break armor to defense = deal half the damage
+    elif player_action == "break" and enemy_action == "defense":
+        enemy_dmg = calculate_final_damage(calculate_base_damage(player_attack), multiplier=0.5)
+        enemy_hp -= enemy_dmg
+        battle_msg = f"Player breaks defense! {enemy_dmg} DMG!"
+    
+    # defense to break armor = deal half the damage
+    elif player_action == "defense" and enemy_action == "break":
+        player_dmg = calculate_final_damage(calculate_base_damage(enemy_attack), multiplier=0.5)
+        player_hp -= player_dmg
+        battle_msg = f"Enemy breaks defense! {player_dmg} DMG!"
+    
+    # break armor to break armor = both deal full damage
+    elif player_action == "break" and enemy_action == "break":
+        player_dmg = calculate_final_damage(calculate_base_damage(enemy_attack))
+        enemy_dmg = calculate_final_damage(calculate_base_damage(player_attack))
+        player_hp -= player_dmg
+        enemy_hp -= enemy_dmg
+        battle_msg = f"Player breaks! {enemy_dmg} DMG! | Enemy breaks! {player_dmg} DMG!"
+    
+    return player_hp, enemy_hp, battle_msg
+
+
+def generate_enemy_actions(num_turns=3):
+    """
+    Generate enemy actions for all turns at once.
+    
+    Args:
+        num_turns: Number of turns to generate actions for (default 3)
+        
+    Returns:
+        list: List of enemy actions for each turn
+    """
+    enemy_actions = []
+    for _ in range(num_turns):
+        enemy_action = random.choice(["attack", "attack", "defense", "break"])
+        enemy_actions.append(enemy_action)
+    return enemy_actions
+
+
+def process_queued_turn(action_queue, turn_index, player_hp, enemy_hp,
+                         player_attack, enemy_attack,
+                         enemy_action=None):
+    """
+    Process a single turn from the action queue using action interaction logic.
+    
+    Args:
+        action_queue: List of player actions
+        turn_index: Current turn index
+        player_hp: Current player HP
+        enemy_hp: Current enemy HP
+        player_attack: Player's attack power
+        enemy_attack: Enemy's attack power
+        enemy_action: Pre-generated enemy action (optional, generates randomly if None)
+        
+    Returns:
+        tuple: (new_player_hp, new_enemy_hp, battle_message)
     """
     if turn_index >= len(action_queue):
-        return player_hp, enemy_hp, player_defending, enemy_defending, "Round complete!"
+        return player_hp, enemy_hp, "Round complete!"
 
     player_action = action_queue[turn_index]
-
-    # Process Player Action
+    
+    # Normalize action names
     if player_action == "defend":
-        player_defending = True
-        battle_msg = "Player defends!"
-    elif player_action == "attack":
-        dmg, msg = process_attack("Player", "Enemy", False, enemy_defending, player_attack, enemy_defense)
-        enemy_hp -= dmg
-        battle_msg = msg
-    elif player_action == "break":
-        dmg, msg = process_attack("Player", "Enemy", True, enemy_defending, player_attack, enemy_defense)
-        enemy_hp -= dmg
-        battle_msg = msg
+        player_action = "defense"
 
-    # Check if enemy is defeated before enemy turn
-    if enemy_hp <= 0:
-        return player_hp, enemy_hp, player_defending, enemy_defending, battle_msg
+    # Use provided enemy action or generate randomly
+    if enemy_action is None:
+        enemy_action = random.choice(["attack", "attack", "defense", "break"])
 
-    # Process Enemy Turn (after player action)
-    action_choice = random.choice(["attack", "attack", "defend", "break"])
-    if action_choice == "defend":
-        enemy_defending = True
-        battle_msg += " | Enemy defends!"
-    else:
-        dmg, msg = process_attack("Enemy", "Player", action_choice == "break", player_defending, enemy_attack, player_defense)
-        player_hp -= dmg
-        battle_msg += f" | {msg}"
+    # Process the action interaction
+    new_player_hp, new_enemy_hp, battle_msg = process_action_interaction(
+        player_action, enemy_action,
+        player_hp, enemy_hp,
+        player_attack, enemy_attack
+    )
 
-    return player_hp, enemy_hp, player_defending, enemy_defending, battle_msg
+    return new_player_hp, new_enemy_hp, battle_msg

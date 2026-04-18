@@ -15,25 +15,5 @@
             "MAX_HP": 100,
             "MONEY": 0
         }
-    ],
-    "pet_data": [
-        {
-            "NAME": "",
-            "LEVEL": 1,
-            "XP": 0,
-            "HP": 100,
-            "MAX_HP": 100,
-            "MONEY": 0
-        }
-    ],
-    "opponent_data": [
-        {
-            "NAME": "",
-            "LEVEL": 1,
-            "XP": 0,
-            "HP": 100,
-            "MAX_HP": 100,
-            "MONEY": 0
-        }
     ]
 }

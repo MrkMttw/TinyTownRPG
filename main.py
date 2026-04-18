@@ -81,17 +81,7 @@ def main_menu():
             hovering_color="#FFE14D",
         )
 
-        # Battle button
-        BATTLE_BUTTON = Button(
-            image=BUTTON1,
-            pos=(640, 570),
-            text_input="BATTLE",
-            font=get_font(40),
-            base_color="BLACK",
-            hovering_color="#FFE14D",
-        )
-
-        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON, BATTLE_BUTTON]:
+        for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
             # Check if button is hovered and update it
             button.changeColor(MENU_MOUSE_POS)
             button.update(SCREEN)
@@ -109,17 +99,7 @@ def main_menu():
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
                     # Show options
                     options()
-                if BATTLE_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    # Load player HP from gamedata
-                    player_hp = gamedata["player_data"][0].get("HP", 100)
-                    enemy_hp = 100
-                    battle_ended = False
-
-                    while not battle_ended:
-                        # Show battle queue screen
-                        action_queue = queue_screen()
-                        # Process battle with the action queue
-                        player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp)
+                    
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     # Quit the game
                     pygame.quit()
