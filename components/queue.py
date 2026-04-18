@@ -8,6 +8,10 @@ def queue_screen():
     """
     Queue selection screen - Player selects 3 actions for the upcoming battle rounds.
     Returns a list of 3 actions: "attack", "defend", or "break"
+
+    Attributes:
+        action_queue: List of selected actions
+        action_names: Dictionary mapping action codes to display names
     """
     action_queue = []
     action_names = {"attack": "ATTACK", "defend": "DEFEND", "break": "BREAK ARMOR"}
@@ -41,6 +45,12 @@ def queue_screen():
     clock = pygame.time.Clock()
 
     while len(action_queue) < 3:
+        """
+        Main game loop for queue selection
+        
+        Returns:
+            list: List of 3 selected actions
+        """
         mouse_pos = pygame.mouse.get_pos()
         dt = clock.tick(60)
 

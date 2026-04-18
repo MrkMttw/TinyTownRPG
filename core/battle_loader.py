@@ -11,6 +11,7 @@ def load_battle_assets():
     """
     print("[DEBUG] Loading battle assets...")
 
+    # Load background
     bg = pygame.image.load("assets/maps/DomainExpansion.png").convert()
     bg = pygame.transform.scale(bg, (WIN_WIDTH, WIN_HEIGHT))
     print(f"[DEBUG] Background loaded, size: {bg.get_size()}")
@@ -43,12 +44,32 @@ def load_battle_assets():
 
 
 def draw_health_bar(surface, x, y, width, height, current_hp, max_hp, name):
+    """
+    Draw a health bar on the screen
+    
+    Args:
+        surface: Pygame surface to draw on
+        x: X position of the health bar
+        y: Y position of the health bar
+        width: Width of the health bar
+        height: Height of the health bar
+        current_hp: Current health points
+        max_hp: Maximum health points
+        name: Name of the entity
+        
+    Returns:
+        None
+    """
+    # Draw border
     pygame.draw.rect(
         surface, (0, 0, 0), (x - 2, y - 2, width + 4, height + 4)
     )
+    # Draw red background
     pygame.draw.rect(surface, (255, 0, 0), (x, y, width, height))
+    # Draw green foreground
     ratio = max(0, current_hp) / max_hp
     pygame.draw.rect(surface, (0, 255, 0), (x, y, width * ratio, height))
 
+    # Draw name
     name_text = get_font(30).render(name, True, (255, 255, 255))
     surface.blit(name_text, (x, y - 40))

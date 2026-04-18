@@ -3,7 +3,7 @@
         {
             "IF_PLAYED": 1,
             "CHARACTER": 2,
-            "PET": 1
+            "PET": 2
         }
     ],
     "player_data": [

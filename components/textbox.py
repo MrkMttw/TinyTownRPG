@@ -67,15 +67,29 @@ class TextBox:
         )
 
     def handle_event(self, event):
+        """
+        Handle events for the text box
+        
+        Args:
+            event: Pygame event to handle
+            
+        Returns:
+            str: Text content if Enter key is pressed, None otherwise
+        """
         if event.type == pygame.MOUSEBUTTONDOWN:
+            # Check if mouse clicked on the text box
             self.active = self.rect.collidepoint(event.pos)
             return None
         if event.type == pygame.KEYDOWN and self.active:
+            # Handle keyboard input
             if event.key == pygame.K_RETURN:
+                # Return the text when Enter is pressed
                 return self.text
             elif event.key == pygame.K_BACKSPACE:
+                # Remove last character
                 self.text = self.text[:-1]
             else:
+                # Add character to text
                 self.text += event.unicode
             self.txt_surface = self.font.render(self.text, True, self.base_color)
             self.text_rect = self.txt_surface.get_rect(
@@ -84,18 +98,29 @@ class TextBox:
         return None
 
     def update(self, screen):
+        """
+        Update and draw the text box
+        
+        Args:
+            screen: Pygame surface to draw on
+        """
         if self.image is not None:
+            # Draw the background image
             screen.blit(self.image, self.rect)
 
         display_text = self.text
         if self.active:
+            # Toggle cursor visibility
             if pygame.time.get_ticks() - self.cursor_timer > 500:
+                # Reset timer and toggle cursor
                 self.cursor_timer = pygame.time.get_ticks()
                 self.cursor_visible = not self.cursor_visible
             if self.cursor_visible:
+                # Show cursor
                 display_text += "|"
 
         if display_text:
+            # Render and display the text
             txt_surface = self.font.render(display_text, True, self.base_color)
             text_rect = txt_surface.get_rect(
                 midleft=(self.rect.x + 8, self.rect.centery)
@@ -103,4 +128,10 @@ class TextBox:
             screen.blit(txt_surface, text_rect)
 
     def get_text(self):
+        """
+        Get the current text content
+        
+        Returns:
+            str: Current text content
+        """
         return self.text

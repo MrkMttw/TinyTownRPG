@@ -25,8 +25,10 @@ def character_selection_screen(on_select_callback, back_callback):
     Parameters:
         None
     """
+    
     scroll = 0
     while True:
+        # Get mouse position
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         # Scrolling background logic
@@ -35,6 +37,7 @@ def character_selection_screen(on_select_callback, back_callback):
 
         scroll -= 1.2
         if abs(scroll) > bg_width:
+            # Reset scroll when image repeats
             scroll = 0
 
         # UI Elements
@@ -42,10 +45,12 @@ def character_selection_screen(on_select_callback, back_callback):
         GIRL_RECT = GIRL.get_rect(center=(600, 360))
         OUTLINE_RECT = OUTLINE.get_rect(center=(1000, 360))
 
+        # Text rendering
         OPTIONS_TEXT1 = get_font(80).render("SELECT", True, "Black")
         OPTIONS_TEXT2 = get_font(80).render("YOUR", True, "Black")
         OPTIONS_TEXT3 = get_font(80).render("CHARACTER", True, "Black")
 
+        # Draw images and text
         SCREEN.blit(BOY, BOY_RECT)
         SCREEN.blit(GIRL, GIRL_RECT)
         SCREEN.blit(OUTLINE, OUTLINE_RECT)
@@ -53,7 +58,7 @@ def character_selection_screen(on_select_callback, back_callback):
         SCREEN.blit(OPTIONS_TEXT2, OPTIONS_TEXT2.get_rect(center=(1000, 360)))
         SCREEN.blit(OPTIONS_TEXT3, OPTIONS_TEXT3.get_rect(center=(1000, 460)))
 
-        # Buttons
+        # Boy selection button
         OPTIONS_BOY_SELECTED = Button(
             image=BUTTON1,
             pos=(240, 600),
@@ -63,6 +68,7 @@ def character_selection_screen(on_select_callback, back_callback):
             hovering_color="#FFE14D",
         )
 
+        # Girl selection button
         OPTIONS_GIRL_SELECTED = Button(
             image=BUTTON1,
             pos=(590, 600),
@@ -72,6 +78,7 @@ def character_selection_screen(on_select_callback, back_callback):
             hovering_color="#FFE14D",
         )
 
+        # Back button
         OPTIONS_BACK = Button(
             image=BUTTON2,
             pos=(150, 70),
@@ -82,14 +89,18 @@ def character_selection_screen(on_select_callback, back_callback):
         )
 
         for button in [OPTIONS_BOY_SELECTED, OPTIONS_BACK, OPTIONS_GIRL_SELECTED]:
+            # Change button color based on mouse position
             button.changeColor(OPTIONS_MOUSE_POS)
+            # Update button
             button.update(SCREEN)
 
         for event in pygame.event.get():
+            # Quit game
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
+            # Check for mouse button down
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if OPTIONS_BOY_SELECTED.checkForInput(OPTIONS_MOUSE_POS):
                     # Set character to Boy (2) and trigger callback
@@ -120,20 +131,25 @@ def character_selected():
     """
     scroll = 0
     while True:
+        # Get mouse position
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         # scrolling background
         for i in range(tiles):
+            # Draw background tiles with scrolling effect
             SCREEN.blit(bg, (i * bg_width + scroll, 0))
 
         scroll -= 0.4
         if abs(scroll) > bg_width:
+            # Reset scroll position when background repeats
             scroll = 0
 
+        # Create character selected text
         CHARACTER_SELECTED = get_font(80).render(
             "CHARACTER HAS BEEN SELECTED", True, "Black"
         )
         CHARACTER_SELECTED_RECT = CHARACTER_SELECTED.get_rect(center=(640, 260))
+        # Draw character selected text
         SCREEN.blit(CHARACTER_SELECTED, CHARACTER_SELECTED_RECT)
 
         SELECTED_BACK = Button(
@@ -145,14 +161,18 @@ def character_selected():
             hovering_color="#FFE14D",
         )
 
+        # Change button color if mouse is hovering over it
         SELECTED_BACK.changeColor(OPTIONS_MOUSE_POS)
+        # Update button
         SELECTED_BACK.update(SCREEN)
 
         for event in pygame.event.get():
+            # Quit game
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
+            # Check for mouse button down
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if SELECTED_BACK.checkForInput(OPTIONS_MOUSE_POS):
                     return

@@ -33,12 +33,16 @@ def main_menu():
     """
     global scroll
     while True:
+        """
+        Get mouse position and update background scroll
+        """
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
         # scrolling background
         for i in range(tiles):
             SCREEN.blit(bg, (i * bg_width + scroll, 0))
-
+            
+        # Update scroll position
         scroll -= 1
         if abs(scroll) > bg_width:
             scroll = 0
@@ -47,7 +51,7 @@ def main_menu():
         LOGO_RECT = LOGO.get_rect(center=(640, 250))
         SCREEN.blit(LOGO, LOGO_RECT)
 
-        # buttons
+        # Play button
         PLAY_BUTTON = Button(
             image=BUTTON1,
             pos=(640, 450),
@@ -57,6 +61,7 @@ def main_menu():
             hovering_color="#FFE14D",
         )
 
+        # Options button
         OPTIONS_BUTTON = Button(
             image=BUTTON1,
             pos=(380, 510),
@@ -66,6 +71,7 @@ def main_menu():
             hovering_color="#FFE14D",
         )
 
+        # Quit button
         QUIT_BUTTON = Button(
             image=BUTTON1,
             pos=(900, 510),
@@ -75,6 +81,7 @@ def main_menu():
             hovering_color="#FFE14D",
         )
 
+        # Battle button
         BATTLE_BUTTON = Button(
             image=BUTTON1,
             pos=(640, 570),
@@ -85,17 +92,22 @@ def main_menu():
         )
 
         for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON, BATTLE_BUTTON]:
+            # Check if button is hovered and update it
             button.changeColor(MENU_MOUSE_POS)
             button.update(SCREEN)
 
         for event in pygame.event.get():
+            # Handle quit event
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            # Handle mouse button down event
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    # Start the game
                     play()
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    # Show options
                     options()
                 if BATTLE_BUTTON.checkForInput(MENU_MOUSE_POS):
                     # Load player HP from gamedata
@@ -104,16 +116,20 @@ def main_menu():
                     battle_ended = False
 
                     while not battle_ended:
+                        # Show battle queue screen
                         action_queue = queue_screen()
+                        # Process battle with the action queue
                         player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp)
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    # Quit the game
                     pygame.quit()
                     sys.exit()
 
         pygame.display.update()
 
 
-update_game_data()  # ensure game data is initialized
+# Initialize game data
+update_game_data()
 
-# run
+# Run the game
 main_menu()

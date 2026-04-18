@@ -10,22 +10,37 @@ class Camera:
     """
     Camera class to handle camera movement
     The camera follows the player, keeping them centered on screen
+
+    Attributes:
+        camera: The camera rectangle
+        width: Camera width
+        height: Camera height
     """
     def __init__(self, width, height):
+        """
+        Initialize the camera
+        
+        Args:
+            width: Camera width
+            height: Camera height
+            
+        Returns:
+            None
+        """
         self.camera = pygame.Rect(0, 0, width, height)
         self.width = width
         self.height = height
 
     def apply(self, entity):
-        """Return a rect moved by the camera offset"""
+        # Return a rect moved by the camera offset
         return entity.rect.move(self.camera.topleft)
 
     def apply_rect(self, rect):
-        """Return a rect moved by the camera offset"""
+        # Return a rect moved by the camera offset
         return rect.move(self.camera.topleft)
 
     def update(self, target):
-        """Update camera position to follow target (player)"""
+        # Update camera position to follow target (player)
         x = -target.rect.centerx + int(WIN_WIDTH / 2)
         y = -target.rect.centery + int(WIN_HEIGHT / 2)
 
@@ -117,4 +132,5 @@ def map_screen():
         coord_text = get_font(20).render(f"Pos: ({player.rect.x // TILESIZE}, {player.rect.y // TILESIZE})", True, (255, 255, 255))
         SCREEN.blit(coord_text, (10, 35))
 
+        # Update display
         pygame.display.update()

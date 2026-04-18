@@ -14,14 +14,21 @@ import math
 
 
 class Camera:
-    """Camera class to handle camera movement"""
+    """Camera class to handle camera movement
+    
+    Attributes:
+        camera: Pygame rectangle representing the camera view
+        width: Width of the camera view
+        height: Height of the camera view
+    """
     def __init__(self, width, height):
+        # Initialize camera at position (0, 0)
         self.camera = pygame.Rect(0, 0, width, height)
         self.width = width
         self.height = height
 
     def update(self, target):
-        """Update camera position to follow target (player)"""
+        # Update camera position to follow target (player)
         x = -target.rect.centerx + int(WIN_WIDTH / 2)
         y = -target.rect.centery + int(WIN_HEIGHT / 2)
 
@@ -35,7 +42,28 @@ class Camera:
 
 
 class Game:
+    """Main game class
+    
+    Attributes:
+        screen: Pygame screen surface
+        clock: Pygame clock for frame rate control
+        running: Boolean indicating if game is running
+        dialogue_box: Dialogue box component
+        camera: Camera for scrolling
+        player: Player character
+        pet: Pet character
+        npcs: List of NPC characters
+        map_width: Width of the game map
+        map_height: Height of the game map
+    """
+
     def __init__(self, screen):
+        """
+        Initialize the game
+        
+        Args:
+            screen: Pygame screen surface
+        """
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.running = True
@@ -46,6 +74,9 @@ class Game:
         self.map_height = 15 * TILESIZE
 
     def new(self):
+        """
+        Start a new game
+        """
         self.playing = True
 
         # Create camera
@@ -72,6 +103,7 @@ class Game:
         self.background_color = (50, 150, 50)  # Green grass color
 
     def events(self):
+        # Handle game events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.playing = False
@@ -98,7 +130,7 @@ class Game:
                         self.dialogue_box.start_dialogue(nearby_npc.name, nearby_npc.dialogue)
 
     def get_nearby_npc(self):
-        """Check if player is within 1 tile of any NPC and return that NPC"""
+        # Check if player is within 1 tile of any NPC and return that NPC
         player_center = self.player.rect.center
         for npc in self.npcs:
             npc_center = npc.rect.center
@@ -108,6 +140,7 @@ class Game:
         return None
 
     def update(self):
+        # Update game state
         # Update dialogue box typing animation
         self.dialogue_box.update()
         
@@ -131,6 +164,7 @@ class Game:
             self.camera.update(self.player)
 
     def draw(self):
+        # Draw game objects to the screen
         # Clear screen
         self.screen.fill((30, 30, 30))
 
@@ -169,7 +203,7 @@ class Game:
                 self.screen.blit(obj.image, (screen_x, screen_y))
 
         # Draw UI
-        info_text = get_font(20).render("WASD to move | F to interact | ESC to exit", True, (255, 255, 255))
+        info_text = get_font(20).render("WASD to move | SHIFT to sprint | F to interact | ESC to exit", True, (255, 255, 255))
         self.screen.blit(info_text, (10, 10))
 
         coord_text = get_font(20).render(f"Pos: ({self.player.rect.x // TILESIZE}, {self.player.rect.y // TILESIZE})", True, (255, 255, 255))
@@ -189,6 +223,9 @@ class Game:
         self.clock.tick(FPS)
 
     def main(self):
+        """
+        Main game loop
+        """
         while self.playing:
             self.events()
             self.update()

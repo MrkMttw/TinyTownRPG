@@ -36,11 +36,15 @@ def play():
     game.new()
 
     while game.playing:
+        # Handle events
         game.events()
+        # Update game state
         game.update()
+        # Draw everything
         game.draw()
 
-    pygame.event.clear()  # prevent input bugs
+    # Clear events to prevent input bugs
+    pygame.event.clear()
     return
 
 
@@ -59,13 +63,16 @@ def options():
 
     # Callback for when a character is selected in Options
     def save_and_confirm(char_id):
+        # Save selected character
         gamedata["in_game_data"][0]["CHARACTER"] = char_id
         update_game_data()
-        return character_selected()  # Show confirmation screen
+        # Show confirmation screen
+        return character_selected()
 
     # Callback for the back button
     def go_back():
-        return  # Simply exits the function to return to main_menu loop
+        # Simply exits the function to return to main_menu loop
+        return
 
     # Use the separated character selection screen
     character_selection_screen(

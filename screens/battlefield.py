@@ -24,8 +24,10 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
 
     # Initialize HP if not provided (first round)
     if player_hp is None:
+        # Get player HP from gamedata
         player_hp = player_data.get("HP", player_max_hp)
     if enemy_hp is None:
+        # Initialize enemy HP to max
         enemy_hp = 100
 
     # Enemy attributes from opponent_data
@@ -53,7 +55,9 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
     clock = pygame.time.Clock()
 
     while True:
+        # Get mouse position
         mouse_pos = pygame.mouse.get_pos()
+        # Get delta time
         dt = clock.tick(60)
 
         # Render background and combatants
@@ -69,11 +73,13 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
 
         # Show turn indicator
         if action_queue and current_turn_index < max_turns:
+            # Render turn indicator text
             turn_text = get_font(25).render(f"Turn {current_turn_index + 1} of {max_turns}", True, (255, 255, 200))
             turn_rect = turn_text.get_rect(center=(WIN_WIDTH // 2, 180))
             SCREEN.blit(turn_text, turn_rect)
 
         if battle_msg:
+            # Render battle message
             msg_surf = get_font(28).render(battle_msg, True, "Black")
             msg_rect = msg_surf.get_rect(center=(WIN_WIDTH // 2, 120))
             bg_rect = msg_rect.inflate(40, 20)
@@ -82,6 +88,7 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
             SCREEN.blit(msg_surf, msg_rect)
 
         if state == "message":
+            # Decrease message timer
             msg_timer -= dt
             if msg_timer <= 0:
                 if player_hp <= 0 or enemy_hp <= 0:
@@ -111,6 +118,7 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
                         msg_timer = 3000
 
         elif state == "game_over":
+            # Decrease message timer
             msg_timer -= dt
             if msg_timer <= 0:
                 # Return HP status: (player_hp, enemy_hp, battle_ended)
@@ -118,7 +126,9 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
                 return player_hp, enemy_hp, battle_ended
 
         for event in pygame.event.get():
+            # Handle quit event
             if event.type == pygame.QUIT:
+                # Quit the game
                 pygame.quit()
                 sys.exit()
 

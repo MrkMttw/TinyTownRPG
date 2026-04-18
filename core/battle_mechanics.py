@@ -2,19 +2,38 @@ import random
 
 
 def process_attack(attacker, defender, is_break, defender_is_defending, attacker_attack=15, defender_defense=5):
+    """
+    Process an attack action between two entities
+    
+    Args:
+        attacker: Name of the attacking entity
+        defender: Name of the defending entity
+        is_break: Whether the attack is a break attack
+        defender_is_defending: Whether the defender is defending
+        attacker_attack: Attack power of the attacker
+        defender_defense: Defense power of the defender
+        
+    Returns:
+        tuple: (damage, message)
+    """
+    # Calculate base damage
     dmg_base = random.randint(attacker_attack - 5, attacker_attack + 5)
 
     if is_break:
+        # Break attack
         if defender_is_defending:
+            # Defender is defending, so break is more effective
             dmg = int(dmg_base * 1.5) - defender_defense
             dmg = max(1, dmg)  # Minimum 1 damage
             msg = f"{attacker} BROKE defense! {dmg} DMG!"
         else:
+            # Defender is not defending, so break is less effective
             dmg = int(dmg_base * 0.5) - int(defender_defense * 0.5)
             dmg = max(1, dmg)  # Minimum 1 damage
             msg = f"{attacker} tried to break... missed! {dmg} DMG."
     else:
         if defender_is_defending:
+            
             dmg = int(dmg_base * 0.3) - defender_defense
             dmg = max(1, dmg)  # Minimum 1 damage
             msg = f"{defender} blocked! {dmg} DMG."
