@@ -57,6 +57,17 @@ class DialogueBox:
             return False
             
         if event.type == pygame.KEYDOWN:
+            # Check if dialogue is complete
+            if self.current_line >= len(self.dialogue_lines):
+                if event.key == pygame.K_f:
+                    self.active = False
+                    return "battle"
+                else:
+                    # Any other key closes the dialogue
+                    self.active = False
+                    return "back"
+            
+            # Dialogue still in progress
             if event.key == pygame.K_f or event.key == pygame.K_SPACE:
                 if self.typing_index < len(self.dialogue_lines[self.current_line]):
                     # Skip typing animation
@@ -66,16 +77,16 @@ class DialogueBox:
                     # Advance to next line
                     self.current_line += 1
                     if self.current_line >= len(self.dialogue_lines):
-                        self.active = False
-                        return True
+                        # Dialogue complete
+                        pass
                     else:
                         self.typing_index = 0
                         self.display_text = ""
             elif event.key == pygame.K_ESCAPE:
                 self.active = False
-                return True
+                return "back"
                 
-        return False
+        return None
     
     def update(self):
         """Update typing animation"""
@@ -127,9 +138,17 @@ class DialogueBox:
             surface.blit(text_surface, (self.box_x + self.text_margin, text_y))
         
         # Draw continue indicator
-        if self.typing_index >= len(self.dialogue_lines[self.current_line]):
+        if self.current_line < len(self.dialogue_lines):
+            if self.typing_index >= len(self.dialogue_lines[self.current_line]):
+                indicator_font = get_font(16)
+                indicator_text = indicator_font.render("Press F to continue", True, (200, 200, 200))
+                indicator_rect = indicator_text.get_rect()
+                indicator_rect.bottomright = (self.box_x + self.box_width - 10, self.box_y + self.box_height - 10)
+                surface.blit(indicator_text, indicator_rect)
+        else:
+            # Dialogue complete - show battle and go back options
             indicator_font = get_font(16)
-            indicator_text = indicator_font.render("Press F to continue", True, (200, 200, 200))
+            indicator_text = indicator_font.render("Press F to battle | Any key to go back", True, (200, 200, 200))
             indicator_rect = indicator_text.get_rect()
             indicator_rect.bottomright = (self.box_x + self.box_width - 10, self.box_y + self.box_height - 10)
             surface.blit(indicator_text, indicator_rect)

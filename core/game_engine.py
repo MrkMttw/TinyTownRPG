@@ -8,6 +8,8 @@ from sprites.player import GamePlayer
 from sprites.pet import GamePet
 from sprites.npc import NPC
 from components.dialogue_box import DialogueBox
+from screens.battlefield import battlefield_screen
+from components.queue import queue_screen
 import math
 
 
@@ -75,11 +77,20 @@ class Game:
                 self.playing = False
                 self.running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE and not self.dialogue_box.active:
                     self.playing = False
                 # Handle dialogue input first
                 if self.dialogue_box.active:
-                    self.dialogue_box.handle_input(event)
+                    result = self.dialogue_box.handle_input(event)
+                    if result == "battle":
+                        # Trigger battle
+                        player_hp = gamedata["player_data"][0].get("HP", 100)
+                        enemy_hp = 100
+                        battle_ended = False
+                        
+                        while not battle_ended:
+                            action_queue = queue_screen()
+                            player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp)
                 # Only handle F key for interaction if dialogue is not active
                 elif event.key == pygame.K_f:
                     nearby_npc = self.get_nearby_npc()
