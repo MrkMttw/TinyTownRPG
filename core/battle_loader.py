@@ -50,8 +50,8 @@ def load_battle_assets(npc=None):
     player_pet_name = get_pet_name(player_pet_val)
     player_pet = load_pet_stance(player_pet_name, "def")  # Default to defense stance
     if player_pet:
-        # Scale pet to 50% of character size
-        player_pet = pygame.transform.scale_by(player_pet, 0.5)
+        # Scale pet to 25% of original size (smaller for battle)
+        player_pet = pygame.transform.scale_by(player_pet, 0.25)
         print(f"[DEBUG] Player pet loaded: {player_pet_name}, size: {player_pet.get_size()}")
 
     # Load enemy pet (if NPC has one)
@@ -60,8 +60,8 @@ def load_battle_assets(npc=None):
         enemy_pet_name = npc.pet
         enemy_pet = load_pet_stance(enemy_pet_name, "def")  # Default to defense stance
         if enemy_pet:
-            # Scale pet to 50% of character size
-            enemy_pet = pygame.transform.scale_by(enemy_pet, 0.5)
+            # Scale pet to 25% of original size (smaller for battle)
+            enemy_pet = pygame.transform.scale_by(enemy_pet, 0.25)
             print(f"[DEBUG] Enemy pet loaded: {enemy_pet_name}, size: {enemy_pet.get_size()}")
 
     print(f"[DEBUG] Returning assets")

@@ -36,6 +36,7 @@ class NPC:
         self.dialogue = dialogue
         self.pet = pet
         self.level = level
+        self.sprite_path = sprite_path
         self.tile_x = tile_x
         self.tile_y = tile_y
         
@@ -68,13 +69,14 @@ class NPC:
         """
         return self.rect.move(camera.camera.topleft)
     
-    def draw(self, surface, camera):
+    def draw(self, surface, camera, show_info=True):
         """
         Draw the NPC on the given surface with camera offset
         
         Args:
             surface: Pygame surface to draw on
             camera: Camera instance
+            show_info: Whether to show name and level above NPC (default True)
             
         Returns:
             None
@@ -83,3 +85,15 @@ class NPC:
         screen_rect = self.get_screen_rect(camera)
         # Draw NPC on surface
         surface.blit(self.image, screen_rect)
+        
+        # Draw name and level above NPC
+        if show_info:
+            from core.shared import get_font
+            info_text = get_font(18).render(f"{self.name} Lv.{self.level}", True, (255, 255, 255))
+            info_rect = info_text.get_rect(midbottom=(screen_rect.centerx, screen_rect.top - 5))
+            # Draw semi-transparent background for text
+            bg_rect = info_rect.inflate(6, 4)
+            bg_surface = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
+            bg_surface.fill((0, 0, 0, 128))  # Black with 50% opacity
+            surface.blit(bg_surface, bg_rect)
+            surface.blit(info_text, info_rect)

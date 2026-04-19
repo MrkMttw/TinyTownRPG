@@ -2,7 +2,7 @@ import pygame, math
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
 from core.config import TILESIZE, PLAYER_SPEED
 from core.gamedata import gamedata
-from core.character_location import NPC_POSITIONS
+from core.npc_attributes import NPC_ATTRIBUTES
 from components.player_movements import MapPlayer
 from sprites.npc import NPC
 
@@ -67,10 +67,10 @@ def map_screen():
     # Create player at starting position
     player = MapPlayer(10, 7)  # Start at tile (10, 7)
 
-    # Create NPCs from positions defined in character_location.py
+    # Create NPCs from attributes defined in npc_attributes.py
     npcs = []
-    for tile_x, tile_y, sprite_path, name in NPC_POSITIONS:
-        npc = NPC(tile_x, tile_y, sprite_path, name)
+    for tile_x, tile_y, sprite_path, name, pet, level, dialogue in NPC_ATTRIBUTES:
+        npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, dialogue)
         npcs.append(npc)
 
     # Load background/tile (for now using a simple colored background)

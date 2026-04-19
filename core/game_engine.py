@@ -136,8 +136,8 @@ class Game:
                         # Store the challenged NPC
                         self.challenged_npc = self.get_nearby_npc()
                         # Trigger battle
-                        player_hp = gamedata["player_data"][0].get("HP", 100)
-                        enemy_hp = 100
+                        player_hp = None
+                        enemy_hp = None
                         battle_ended = False
 
                         while not battle_ended:

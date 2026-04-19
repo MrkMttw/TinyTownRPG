@@ -20,6 +20,8 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
         npc: NPC object for opponent data
     """
     bg, left_char, right_char, player_pet, enemy_pet = load_battle_assets(npc)
+    if enemy_pet:
+        enemy_pet = pygame.transform.flip(enemy_pet, True, False)
     
     # Initialize pause menu
     pause_menu = PauseMenu()
@@ -30,14 +32,6 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     # Base stats: HP=100, Attack=20, multiplied by level
     player_max_hp = 100 * player_level
     player_attack = 20 * player_level
-
-    # Initialize HP if not provided (first round)
-    if player_hp is None:
-        # Get player HP from gamedata or use max
-        player_hp = player_data.get("HP", player_max_hp)
-    if enemy_hp is None:
-        # Initialize enemy HP to max (with level multiplier)
-        enemy_hp = enemy_max_hp
 
     # Enemy attributes from NPC or default
     if npc:
@@ -50,6 +44,14 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     enemy_max_hp = 100 * enemy_level
     enemy_attack = 19 * enemy_level
 
+    # Initialize HP if not provided (first round)
+    if player_hp is None:
+        # Set player HP to max for new battle
+        player_hp = player_max_hp
+    if enemy_hp is None:
+        # Initialize enemy HP to max (with level multiplier)
+        enemy_hp = enemy_max_hp
+
     battle_msg = "A fierce battle begins!"
     msg_timer = 2000
     state = "message"  # "message", "executing", "game_over"
@@ -61,16 +63,13 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     # Generate enemy actions for all turns at once
     enemy_actions = generate_enemy_actions(max_turns) if action_queue else []
 
-    left_rect = left_char.get_rect(midbottom=(WIN_WIDTH * 0.25, WIN_HEIGHT - 150))
-    right_rect = right_char.get_rect(midbottom=(WIN_WIDTH * 0.75, WIN_HEIGHT - 150))
-    
-    # Pet positions (beside their owners)
+    # Pet positions (fixed screen positions)
     player_pet_rect = None
     enemy_pet_rect = None
     if player_pet:
-        player_pet_rect = player_pet.get_rect(midleft=(left_rect.right + 10, left_rect.centery))
+        player_pet_rect = player_pet.get_rect(midbottom=(WIN_WIDTH * 0.25, WIN_HEIGHT - 150))
     if enemy_pet:
-        enemy_pet_rect = enemy_pet.get_rect(midright=(right_rect.left - 10, right_rect.centery))
+        enemy_pet_rect = enemy_pet.get_rect(midbottom=(WIN_WIDTH * 0.75, WIN_HEIGHT - 150))
     
     # Pet stance tracking
     current_player_pet_stance = "def"
@@ -110,10 +109,8 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                     pause_menu.toggle()
 
         # Draw game elements
-        # Render background and combatants
+        # Render background
         SCREEN.blit(bg, (0, 0))
-        SCREEN.blit(left_char, left_rect)
-        SCREEN.blit(right_char, right_rect)
         
         # Draw pets beside their owners
         if player_pet and player_pet_rect:
@@ -121,11 +118,6 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
         if enemy_pet and enemy_pet_rect:
             SCREEN.blit(enemy_pet, enemy_pet_rect)
         
-        # Show opponent name and level above enemy head
-        enemy_info_text = get_font(24).render(f"{enemy_name} Lv.{enemy_level}", True, (255, 255, 255))
-        enemy_info_rect = enemy_info_text.get_rect(midtop=(right_rect.centerx, right_rect.top - 35))
-        pygame.draw.rect(SCREEN, (0, 0, 0), enemy_info_rect.inflate(10, 5))
-        SCREEN.blit(enemy_info_text, enemy_info_rect)
 
         # Render UI
         draw_health_bar(SCREEN, 50, 50, 400, 30, player_hp, player_max_hp, "PLAYER")
@@ -179,16 +171,17 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                         current_player_pet_stance = player_action if player_action in ["attack", "defense", "break"] else "def"
                         current_enemy_pet_stance = current_enemy_action if current_enemy_action in ["attack", "defense", "break"] else "def"
                         
-                        # Reload pet sprites with new stances
+                        # Reload pet sprites with new stances (already scaled in battle_loader)
                         if player_pet_name:
                             new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
                             if new_player_pet:
-                                player_pet = pygame.transform.scale_by(new_player_pet, 0.5)
+                                player_pet = pygame.transform.scale_by(new_player_pet, 0.25)
                         
                         if enemy_pet_name:
                             new_enemy_pet = load_pet_stance(enemy_pet_name, current_enemy_pet_stance)
                             if new_enemy_pet:
-                                enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.5)
+                                enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.25)
+                                enemy_pet = pygame.transform.flip(enemy_pet, True, False)
                         
                         player_hp, enemy_hp, battle_msg = process_queued_turn(
                             action_queue, current_turn_index,
@@ -214,6 +207,11 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
             # Decrease message timer
             msg_timer -= dt
             if msg_timer <= 0:
+                # Only show panel if battle actually ended (someone's HP <= 0)
+                if player_hp > 0 and enemy_hp > 0:
+                    # Round complete with both alive - return without panel
+                    return player_hp, enemy_hp, False
+                
                 # Show victory/defeat panel
                 char_id = gamedata["in_game_data"][0]["CHARACTER"]
                 if enemy_hp <= 0:
