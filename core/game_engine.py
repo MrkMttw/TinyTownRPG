@@ -154,8 +154,13 @@ class Game:
                         battle_ended = False
 
                         while not battle_ended:
+                            pygame.mixer.stop()  # Stop all sounds including voicelines before queue phase
                             action_queue = queue_screen()
-                            player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp, self.challenged_npc)
+                            player_hp, enemy_hp, battle_ended, exit_to_homescreen = battlefield_screen(action_queue, player_hp, enemy_hp, self.challenged_npc)
+                            if exit_to_homescreen:
+                                # Exit game loop to return to homescreen
+                                self.playing = False
+                                break
                 # Only handle F key for interaction if dialogue is not active and not paused
                 elif event.key == pygame.K_f and not self.pause_menu.active and not self.pet_inventory.active:
                     nearby_npc = self.get_nearby_npc()

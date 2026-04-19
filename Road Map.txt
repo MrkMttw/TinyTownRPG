@@ -18,7 +18,9 @@ Options
 
 Cutscenes
 - add the intro comic panel in the screen after the player enters the name - done
+- if the player reaches level 7, do the following:
 - the outro will have a screen saying “The Mad Scientist has been defeated” “Thank you Adventurer!”
+- the outro will have an option to reset progress with yes or no
 
 Tutorial
 - teach the player WASD to move, TAB to open pet inventory, and ESC to pause - done

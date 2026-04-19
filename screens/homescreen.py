@@ -22,12 +22,17 @@ def play():
     """
     if gamedata["in_game_data"][0]["IF_PLAYED"] == 0:  # first time playing
         update_game_data()
+        back_pressed = [False]
+        def back_callback():
+            back_pressed[0] = True
         character_selection(
             None,
-            lambda: None,  # no backward navigation for first boot
+            back_callback,  # return to main menu if back is pressed
             gamedata,
             update_game_data,
         )
+        if back_pressed[0]:
+            return  # Return to main menu instead of proceeding to tutorial
         # Show tutorial controls (IF_PLAYED will be set to 1 after tutorial completion)
         tutorial_controls()
 

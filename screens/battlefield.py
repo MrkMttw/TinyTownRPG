@@ -19,6 +19,10 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
         player_hp: Current player HP
         enemy_hp: Current enemy HP
         npc: NPC object for opponent data
+        
+    Returns:
+        tuple: (player_hp, enemy_hp, battle_ended, exit_to_homescreen)
+               exit_to_homescreen is True when player resets after level 7 victory
     """
     bg, left_char, right_char, player_pet, enemy_pet = load_battle_assets(npc)
     if enemy_pet:
@@ -119,7 +123,7 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                     pygame.mixer.music.play(-1)
                 # Exit battle and return to game engine
                 pygame.event.clear()
-                return player_hp, enemy_hp, True
+                return player_hp, enemy_hp, True, False
             pause_menu.draw(SCREEN)
             pygame.display.update()
             continue  # Skip game logic when paused
@@ -316,7 +320,7 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                     if SETTINGS["BGM_ENABLED"]:
                         pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
                         pygame.mixer.music.play(-1)
-                    return player_hp, enemy_hp, False
+                    return player_hp, enemy_hp, False, False
                 
                 # Stop battle music before playing victory/defeat sounds
                 pygame.mixer.music.stop()
@@ -341,6 +345,21 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                             gamedata["pets_collected"].append(npc.pet)
                             from core.gamedata import update_game_data
                             update_game_data()
+                        
+                        # Check if player reached level 7 - trigger outro
+                        if gamedata["player_data"][0]["LEVEL"] == 7:
+                            from screens.outro import outro_screen
+                            should_exit = outro_screen()
+                            if should_exit:
+                                # Exit battle and signal game to exit
+                                pygame.mixer.music.stop()
+                                bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
+                                pygame.mixer.music.load(bgm_path)
+                                if SETTINGS["BGM_ENABLED"]:
+                                    pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+                                    pygame.mixer.music.play(-1)
+                                pygame.event.clear()
+                                return player_hp, enemy_hp, True, True  # Fourth flag = exit to homescreen
                     victory = True
                 else:
                     # Defeat
@@ -400,9 +419,9 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 except FileNotFoundError:
                     print(f"[WARNING] Panel not found: {panel_path}")
                 
-                # Return HP status: (player_hp, enemy_hp, battle_ended)
+                # Return HP status: (player_hp, enemy_hp, battle_ended, exit_to_homescreen)
                 battle_ended = player_hp <= 0 or enemy_hp <= 0
                 
-                return player_hp, enemy_hp, battle_ended
+                return player_hp, enemy_hp, battle_ended, False
 
         pygame.display.update()
