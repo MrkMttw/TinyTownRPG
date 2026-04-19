@@ -13,3 +13,68 @@ SPRINT_MULTIPLIER = 2.0
 
 # Tile visibility: 1 = visible, 2 = invisible
 TILES_VISIBLE = 2
+
+# Default settings
+DEFAULT_SETTINGS = {
+    "SFX_ENABLED": True,
+    "SFX_VOLUME": 0.5,
+    "BGM_ENABLED": True,
+    "BGM_VOLUME": 0.5,
+    "FULLSCREEN": False
+}
+
+# Load settings from JSON file, or use defaults
+try:
+    with open("core/settings.json", "r", encoding="utf-8") as f:
+        loaded_settings = json.load(f)
+        # Merge loaded settings with defaults (in case new settings are added later)
+        settings = {**DEFAULT_SETTINGS, **loaded_settings}
+except FileNotFoundError:
+    settings = DEFAULT_SETTINGS.copy()
+
+# Settings dictionary - use this for dynamic access
+SETTINGS = settings
+
+# Backwards compatibility - access through SETTINGS dict
+SFX_ENABLED = SETTINGS["SFX_ENABLED"]
+SFX_VOLUME = SETTINGS["SFX_VOLUME"]
+BGM_ENABLED = SETTINGS["BGM_ENABLED"]
+BGM_VOLUME = SETTINGS["BGM_VOLUME"]
+FULLSCREEN = SETTINGS["FULLSCREEN"]
+
+
+def save_settings(sfx_enabled, sfx_volume, bgm_enabled, bgm_volume, fullscreen):
+    """Save settings to JSON file
+
+    Args:
+        sfx_enabled: Boolean for sound effects toggle
+        sfx_volume: Float for sound effects volume (0.0-1.0)
+        bgm_enabled: Boolean for background music toggle
+        bgm_volume: Float for background music volume (0.0-1.0)
+        fullscreen: Boolean for fullscreen mode
+    """
+    global SFX_ENABLED, SFX_VOLUME, BGM_ENABLED, BGM_VOLUME, FULLSCREEN, SETTINGS
+    
+    settings_to_save = {
+        "SFX_ENABLED": sfx_enabled,
+        "SFX_VOLUME": sfx_volume,
+        "BGM_ENABLED": bgm_enabled,
+        "BGM_VOLUME": bgm_volume,
+        "FULLSCREEN": fullscreen
+    }
+    with open("core/settings.json", "w", encoding="utf-8") as f:
+        json.dump(settings_to_save, f, indent=4)
+    
+    # Update SETTINGS dictionary
+    SETTINGS["SFX_ENABLED"] = sfx_enabled
+    SETTINGS["SFX_VOLUME"] = sfx_volume
+    SETTINGS["BGM_ENABLED"] = bgm_enabled
+    SETTINGS["BGM_VOLUME"] = bgm_volume
+    SETTINGS["FULLSCREEN"] = fullscreen
+    
+    # Update module-level variables to stay in sync
+    SFX_ENABLED = sfx_enabled
+    SFX_VOLUME = sfx_volume
+    BGM_ENABLED = bgm_enabled
+    BGM_VOLUME = bgm_volume
+    FULLSCREEN = fullscreen

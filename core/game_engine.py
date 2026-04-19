@@ -121,6 +121,9 @@ class Game:
             if result == "quit":
                 self.playing = False
                 self.running = False
+            elif result == "settings":
+                from screens.settings import show_settings
+                show_settings()
             return
 
         for event in pygame.event.get():
@@ -310,6 +313,9 @@ class Game:
                 elif result == "continue":
                     # Resume game - the toggle was already called in handle_events
                     pass
+                elif result == "settings":
+                    from screens.settings import settings
+                    settings()
                 # Draw game state with pause overlay
                 self.draw()
             else:

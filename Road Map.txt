@@ -6,12 +6,14 @@ Map structure
 - structure collisions
 
 Game screen
-- add an inventory button in the bottom middle of the screen that accesses the pet inventory system (with custom icon, can also be accessed with TAB). It has a selection but it's locked. It will only be unlocked if they defeated the npc that owns that pet
-- Show opponent name and level above their head
+- add an inventory button in the bottom middle of the screen that accesses the pet inventory system (with custom icon, can also be accessed with TAB). It has a selection but it's locked. It will only be unlocked if they defeated the npc that owns that pet - done
+- Show opponent name and level above their head - done
 
 Options
 - turn on/off sound effects
+- sound effects volume adjuster
 - turn on/off background music
+- background music volume adjuster
 - full screen mode
 
 Cutscenes
@@ -34,11 +36,11 @@ Battlefield and npcs
 - add victory and defeat panels. check if the character in the gamedata is 1, if it is 1, then show the girl_vic panel, if it is 2, then show the boy_vic panel. if you are defeated, show the girl_defeat or boy_defeat panel - done
 
 Sound effects
-- Background music
-- Battle music
-- attack, defend, break armor music
-- victory and defeat sound effect
-- dialogue sounds
+- Background music - done
+- Battle music - done
+- attack, defend, break armor music - done
+- victory and defeat sound effect - done
+- dialogue sounds - done
 
 Other mechanics
 - add pause button in the main game (ESC to use) - done

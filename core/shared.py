@@ -1,8 +1,28 @@
 import pygame
 import math
-from core.config import WIN_WIDTH, WIN_HEIGHT
+from core.config import WIN_WIDTH, WIN_HEIGHT, SETTINGS
 
 pygame.init()
+
+# Initialize mixer for audio
+pygame.mixer.init()
+
+# Load background music
+pygame.mixer.music.load("assets/esefex/bg_sfx.mp3")
+
+# Play background music if enabled
+if SETTINGS["BGM_ENABLED"]:
+    pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+    pygame.mixer.music.play(-1)
+
+def update_audio_settings():
+    """Update audio settings based on current SETTINGS"""
+    if SETTINGS["BGM_ENABLED"]:
+        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play(-1)
+    else:
+        pygame.mixer.music.stop()
 
 # Set up the display
 SCREEN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))

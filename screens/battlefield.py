@@ -23,6 +23,21 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     if enemy_pet:
         enemy_pet = pygame.transform.flip(enemy_pet, True, False)
     
+    # Pause background music during battle
+    pygame.mixer.music.pause()
+    
+    # Load battle SFX
+    battle_sfx = pygame.mixer.Sound("assets/esefex/battle_sfx.mp3")
+    battle_sfx.set_volume(0.5)
+    attack_sfx = pygame.mixer.Sound("assets/esefex/attack_sfx.mp3")
+    defense_sfx = pygame.mixer.Sound("assets/esefex/defense_sfx.mp3")
+    breakarmor_sfx = pygame.mixer.Sound("assets/esefex/breakarmor_sfx.mp3")
+    victory_sfx = pygame.mixer.Sound("assets/esefex/victory_sfx.mp3")
+    defeat_sfx = pygame.mixer.Sound("assets/esefex/defeat_sfx.mp3")
+    
+    # Play battle start SFX
+    battle_sfx.play()
+    
     # Initialize pause menu
     pause_menu = PauseMenu()
 
@@ -209,6 +224,14 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 current_player_pet_stance = player_action if player_action in ["attack", "defense", "break"] else "def"
                 current_enemy_pet_stance = current_enemy_action if current_enemy_action in ["attack", "defense", "break"] else "def"
                 
+                # Play action SFX
+                if player_action == "attack":
+                    attack_sfx.play()
+                elif player_action == "defense":
+                    defense_sfx.play()
+                elif player_action == "break":
+                    breakarmor_sfx.play()
+                
                 # Reload pet sprites with action stances
                 if player_pet_name:
                     new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
@@ -276,12 +299,17 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 # Only show panel if battle actually ended (someone's HP <= 0)
                 if player_hp > 0 and enemy_hp > 0:
                     # Round complete with both alive - return without panel
+                    battle_sfx.stop()
                     return player_hp, enemy_hp, False
+                
+                # Stop battle SFX before playing victory/defeat sounds
+                battle_sfx.stop()
                 
                 # Show victory/defeat panel
                 char_id = gamedata["in_game_data"][0]["CHARACTER"]
                 if enemy_hp <= 0:
                     # Victory
+                    victory_sfx.play()
                     if char_id == 1:
                         panel_path = "assets/banner/girl_vic.png"
                     else:
@@ -300,6 +328,7 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                     victory = True
                 else:
                     # Defeat
+                    defeat_sfx.play()
                     if char_id == 1:
                         panel_path = "assets/banner/girl_defeat.png"
                     else:
@@ -338,15 +367,18 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                                 sys.exit()
                             if event.type == pygame.MOUSEBUTTONDOWN:
                                 if button_rect.collidepoint(event.pos):
+                                    pygame.mixer.music.unpause()
                                     waiting = False
                             if event.type == pygame.KEYDOWN:
                                 if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                                    pygame.mixer.music.unpause()
                                     waiting = False
                 except FileNotFoundError:
                     print(f"[WARNING] Panel not found: {panel_path}")
                 
                 # Return HP status: (player_hp, enemy_hp, battle_ended)
                 battle_ended = player_hp <= 0 or enemy_hp <= 0
+                
                 return player_hp, enemy_hp, battle_ended
 
         pygame.display.update()

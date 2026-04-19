@@ -4,6 +4,7 @@ Pause menu component for the game
 import pygame
 import sys
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
+from screens.settings import show_settings
 
 
 class PauseMenu:
