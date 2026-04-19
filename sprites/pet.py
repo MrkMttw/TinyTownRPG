@@ -46,20 +46,20 @@ class GamePet:
             path = "assets/pets/Sausage"
             PET_NAME = "sausage"
         elif pet_val == 2:
-            path = "assets/pets/Balls"
-            PET_NAME = "balls"
-        elif pet_val == 3:
             path = "assets/pets/Bear"
             PET_NAME = "bear"
-        elif pet_val == 4:
-            path = "assets/pets/Dino"
-            PET_NAME = "dino"
-        elif pet_val == 5:
+        elif pet_val == 3:
             path = "assets/pets/Germs"
             PET_NAME = "germs"
-        elif pet_val == 6:
+        elif pet_val == 4:
             path = "assets/pets/Pompoms"
             PET_NAME = "pom"
+        elif pet_val == 5:
+            path = "assets/pets/Dino"
+            PET_NAME = "dino"        
+        elif pet_val == 6:
+            path = "assets/pets/Balls"
+            PET_NAME = "balls"
 
         # Load animations
         self.down_animations = self.load_animation_set(path, PET_NAME, "down")

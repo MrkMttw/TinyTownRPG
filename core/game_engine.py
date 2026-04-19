@@ -71,7 +71,7 @@ class Game:
         self.running = True
         self.dialogue_box = DialogueBox()
         self.pause_menu = PauseMenu()
-        self.pet_inventory = PetInventory()
+        self.pet_inventory = PetInventory(self)
         self.challenged_npc = None  # Store the NPC being challenged
 
         # Load map image
@@ -179,6 +179,10 @@ class Game:
             if distance <= TILESIZE * 0.5:
                 return npc
         return None
+    
+    def reload_pet(self):
+        """Reload the pet with the currently equipped pet from gamedata"""
+        self.pet = GamePet(self.player)
 
     def update(self):
         # Update game state

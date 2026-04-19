@@ -80,11 +80,11 @@ def get_pet_name(pet_val):
     """
     pet_names = {
         1: "sausage",
-        2: "balls",
-        3: "bear",
-        4: "dino",
-        5: "germs",
-        6: "pom"
+        2: "bear",
+        3: "germs",
+        4: "pom",
+        5: "dino",
+        6: "balls"
     }
     return pet_names.get(pet_val, "sausage")
 
@@ -116,6 +116,15 @@ def load_pet_stance(pet_name, stance):
         return pet_img
     except FileNotFoundError:
         print(f"[WARNING] Pet stance not found: {path}")
+        # Fallback: if break image not found, try attack image
+        if stance == "break":
+            try:
+                fallback_path = f"assets/battle_actions/{pet_name}_attack.png"
+                pet_img = pygame.image.load(fallback_path).convert_alpha()
+                print(f"[INFO] Using fallback image: {fallback_path}")
+                return pet_img
+            except FileNotFoundError:
+                print(f"[WARNING] Fallback image not found: {fallback_path}")
         return None
 
 

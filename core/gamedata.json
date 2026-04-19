@@ -2,8 +2,8 @@
     "in_game_data": [
         {
             "IF_PLAYED": 1,
-            "CHARACTER": 1,
-            "PET": 2
+            "CHARACTER": 2,
+            "PET": 5
         }
     ],
     "player_data": [
@@ -13,6 +13,11 @@
         }
     ],
     "pets_collected": [
-        "bear"
+        "sausage",
+        "bear",
+        "germs",
+        "pom",
+        "dino",
+        "balls"
     ]
 }
