@@ -38,8 +38,8 @@ class DialogueBox:
         self.dialogue_lines = []
         self.current_line = 0
         self.speaker_name = ""
-        self.box_width = 900
-        self.box_height = 150
+        self.box_width = WIN_WIDTH - 40  # 20px margin on each side
+        self.box_height = 220
         self.box_x = (WIN_WIDTH - self.box_width) // 2
         self.box_y = WIN_HEIGHT - self.box_height - 20
         self.text_margin = 20
@@ -49,6 +49,8 @@ class DialogueBox:
         self.typing_index = 0
         self.typing_timer = 0
         self.display_text = ""
+        self.line_delay_timer = 0
+        self.line_delay_duration = 60  # Frames to wait before auto-advancing (1 second at 60 FPS)
         
     def start_dialogue(self, speaker_name, dialogue_text):
         """
@@ -67,10 +69,18 @@ class DialogueBox:
         self.active = True
         self.typing_index = 0
         self.display_text = ""
+        self.line_delay_timer = 0
+        
+        # Dynamically adjust box height to fit all lines
+        num_lines = len(self.dialogue_lines)
+        min_text_height = num_lines * self.line_height
+        total_height_needed = 55 + min_text_height + 30  # header + text + bottom margin
+        self.box_height = max(220, total_height_needed)  # Minimum 220, but expand if needed
+        self.box_y = WIN_HEIGHT - self.box_height - 20
         
     def _wrap_text(self, text):
         """
-        Wrap text to fit in the dialogue box
+        Wrap text to fit in the dialogue box based on pixel width
         
         Args:
             text: Text to wrap
@@ -78,25 +88,46 @@ class DialogueBox:
         Returns:
             List of wrapped lines
         """
+        text_font = get_font(20)
+        max_width = self.box_width - (2 * self.text_margin)  # Available text width
+        
         words = text.split()
         lines = []
         current_line = ""
         
         for word in words:
-            # Check if adding the word would exceed the character limit
-            if len(current_line + " " + word) <= self.chars_per_line:
-                current_line += " " + word if current_line else word
+            # Test if adding this word would exceed max width
+            test_line = current_line + " " + word if current_line else word
+            line_width = text_font.size(test_line)[0]
+            
+            if line_width <= max_width:
+                current_line = test_line
             else:
-                # Add the current line to the list and start a new line
+                # Word doesn't fit, add current line and start new one
                 if current_line:
                     lines.append(current_line)
-                current_line = word
+                # Handle single word that's too long
+                if text_font.size(word)[0] > max_width:
+                    # Split long word character by character
+                    chars = list(word)
+                    temp_line = ""
+                    for char in chars:
+                        if text_font.size(temp_line + char)[0] <= max_width:
+                            temp_line += char
+                        else:
+                            if temp_line:
+                                lines.append(temp_line)
+                            temp_line = char
+                    if temp_line:
+                        current_line = temp_line
+                    else:
+                        current_line = ""
+                else:
+                    current_line = word
         
         if current_line:
-            # Add the last line to the list
             lines.append(current_line)
-
-        # Return the list of wrapped lines
+        
         return lines
     
     def handle_input(self, event):
@@ -165,9 +196,21 @@ class DialogueBox:
                     self.typing_index += 1
                     self.display_text = current_line_text[:self.typing_index]
                     self.typing_timer = 0
+                    # Reset line delay timer when typing
+                    self.line_delay_timer = 0
             else:
                 # If the current line is fully displayed, show it
                 self.display_text = current_line_text
+                # Increment delay timer for auto-advance
+                self.line_delay_timer += 1
+                if self.line_delay_timer >= self.line_delay_duration:
+                    # Auto-advance to next line after delay
+                    self.current_line += 1
+                    if self.current_line < len(self.dialogue_lines):
+                        # Reset typing for next line
+                        self.typing_index = 0
+                        self.display_text = ""
+                        self.line_delay_timer = 0
     
     def draw(self, surface):
         """
@@ -205,14 +248,26 @@ class DialogueBox:
                            (self.box_x + self.text_margin, self.box_y + 40),
                            (self.box_x + self.box_width - self.text_margin, self.box_y + 40), 2)
         
-        # Draw dialogue text
+        # Draw dialogue text - display all wrapped lines
         text_font = get_font(20)
         text_y = self.box_y + 55
         
-        if self.current_line < len(self.dialogue_lines):
-            # If there are more lines to display, draw the current line
-            text_surface = text_font.render(self.display_text, True, (255, 255, 255))
-            surface.blit(text_surface, (self.box_x + self.text_margin, text_y))
+        if self.dialogue_lines:
+            for i, line_text in enumerate(self.dialogue_lines):
+                # Only show lines up to and including current line
+                if i > self.current_line:
+                    # Hide future lines
+                    break
+                
+                # Apply typing animation only to the current line
+                if i == self.current_line:
+                    render_text = self.display_text
+                else:
+                    render_text = line_text
+                
+                text_surface = text_font.render(render_text, True, (255, 255, 255))
+                surface.blit(text_surface, (self.box_x + self.text_margin, text_y))
+                text_y += self.line_height
         
         # Draw continue indicator
         if self.current_line < len(self.dialogue_lines):

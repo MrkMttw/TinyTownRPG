@@ -12,7 +12,7 @@ PLAYER_SPEED = 1
 SPRINT_MULTIPLIER = 2.0
 
 # Tile visibility: 1 = visible, 2 = invisible
-TILES_VISIBLE = 2
+TILES_VISIBLE = 1
 
 # Default settings
 DEFAULT_SETTINGS = {

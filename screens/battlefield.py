@@ -106,6 +106,9 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
         if pause_menu.active:
             pause_result = pause_menu.handle_events()
             if pause_result == "quit":
+                # Stop battle SFX and resume background music before exiting
+                battle_sfx.stop()
+                pygame.mixer.music.unpause()
                 # Exit battle and return to game engine
                 pygame.event.clear()
                 return player_hp, enemy_hp, True
