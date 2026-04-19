@@ -10,3 +10,6 @@ PET_SPEED = 1
 PLAYER_LAYER = 1
 PLAYER_SPEED = 1
 SPRINT_MULTIPLIER = 2.0
+
+# Tile visibility: 1 = visible, 2 = invisible
+TILES_VISIBLE = 2

@@ -1,6 +1,6 @@
 import pygame, math
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
-from core.config import TILESIZE, PLAYER_SPEED
+from core.config import TILESIZE, PLAYER_SPEED, TILES_VISIBLE
 from core.gamedata import gamedata
 from core.npc_attributes import NPC_ATTRIBUTES
 from components.player_movements import MapPlayer
@@ -57,9 +57,18 @@ def map_screen():
     Map screen with camera system
     Player stays centered, background moves
     """
-    # Map dimensions (adjust based on your actual map size)
-    MAP_WIDTH = 20 * TILESIZE  # 20 tiles wide
-    MAP_HEIGHT = 15 * TILESIZE  # 15 tiles high
+    # Load map image
+    try:
+        map_image = pygame.image.load("assets/maps/map.png").convert()
+        MAP_WIDTH = map_image.get_width()
+        MAP_HEIGHT = map_image.get_height()
+        print(f"Map image loaded successfully: {MAP_WIDTH}x{MAP_HEIGHT}")
+    except pygame.error as e:
+        print(f"Error loading map image: {e}")
+        # Fallback to colored background
+        MAP_WIDTH = 20 * TILESIZE
+        MAP_HEIGHT = 15 * TILESIZE
+        map_image = None
 
     # Create camera
     camera = Camera(MAP_WIDTH, MAP_HEIGHT)
@@ -72,10 +81,6 @@ def map_screen():
     for tile_x, tile_y, sprite_path, name, pet, level, dialogue in NPC_ATTRIBUTES:
         npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, dialogue)
         npcs.append(npc)
-
-    # Load background/tile (for now using a simple colored background)
-    # You can replace this with actual tile loading
-    background_color = (50, 150, 50)  # Green grass color
 
     clock = pygame.time.Clock()
 
@@ -102,15 +107,20 @@ def map_screen():
         SCREEN.fill((30, 30, 30))
 
         # Draw background (with camera offset)
-        # Create a surface for the map
-        map_surface = pygame.Surface((MAP_WIDTH, MAP_HEIGHT))
-        map_surface.fill(background_color)
+        if map_image is not None:
+            # Create a fresh copy of the map image for this frame
+            map_surface = map_image.copy()
+        else:
+            # Fallback to colored background
+            map_surface = pygame.Surface((MAP_WIDTH, MAP_HEIGHT))
+            map_surface.fill((50, 150, 50))
 
         # Draw grid lines to show movement (optional, for debugging)
-        for x in range(0, MAP_WIDTH, TILESIZE):
-            pygame.draw.line(map_surface, (40, 140, 40), (x, 0), (x, MAP_HEIGHT))
-        for y in range(0, MAP_HEIGHT, TILESIZE):
-            pygame.draw.line(map_surface, (40, 140, 40), (0, y), (MAP_WIDTH, y))
+        if TILES_VISIBLE == 1:
+            for x in range(0, MAP_WIDTH, TILESIZE):
+                pygame.draw.line(map_surface, (40, 140, 40), (x, 0), (x, MAP_HEIGHT))
+            for y in range(0, MAP_HEIGHT, TILESIZE):
+                pygame.draw.line(map_surface, (40, 140, 40), (0, y), (MAP_WIDTH, y))
 
         # Blit map surface with camera offset
         SCREEN.blit(map_surface, camera.camera.topleft)

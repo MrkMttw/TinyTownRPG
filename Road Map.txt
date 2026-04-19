@@ -23,15 +23,15 @@ Tutorial
 - after this, the IF_PLAYED will be set to 1 - done
 
 Battlefield and npcs
-- change the filename npc_location.py to npc_attributes.py and the NPC_POSITIONS to NPC_ATTRIBUTES
-- change the parameter of the npc to (x,y,”file_location”,”npc_name”,”pet”,level,”dialogue”)
-- use the npc that is challenged by the player as the opponent
-- add the pet in front of the pet owner to the battle screen (both player and npc)
-- make the pet have attack, defense, break armor stance
-- The level of the player and the npc will act as multiplier to their base hp and attack
-- The base hp of the player is 100 and the base attack of the player is 20, the base hp of the npc is 100 and the base attack will be 19.
-- After defeating the opponent, it will gain 1 level and it will obtain the pet that the opponent has. It will not level up if the player level is not equal to the npc fought.
-- add victory and defeat panels. check if the character in the gamedata is 1, if it is 1, then show the girl_vic panel, if it is 2, then show the boy_vic panel. if you are defeated, show the girl_defeat or boy_defeat panel
+- change the filename npc_location.py to npc_attributes.py and the NPC_POSITIONS to NPC_ATTRIBUTES - done
+- change the parameter of the npc to (x,y,”file_location”,”npc_name”,”pet”,level,”dialogue”) - done
+- use the npc that is challenged by the player as the opponent - done
+- add the pet in front of the pet owner to the battle screen (both player and npc) -done
+- make the pet have attack, defense, break armor stance - done
+- The level of the player and the npc will act as multiplier to their base hp and attack - done
+- The base hp of the player is 100 and the base attack of the player is 20, the base hp of the npc is 100 and the base attack will be 19. - done
+- After defeating the opponent, it will gain 1 level and it will obtain the pet that the opponent has. It will not level up if the player level is not equal to the npc fought. - done
+- add victory and defeat panels. check if the character in the gamedata is 1, if it is 1, then show the girl_vic panel, if it is 2, then show the boy_vic panel. if you are defeated, show the girl_defeat or boy_defeat panel - done
 
 Sound effects
 - Background music

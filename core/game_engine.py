@@ -74,9 +74,22 @@ class Game:
         self.pet_inventory = PetInventory()
         self.challenged_npc = None  # Store the NPC being challenged
 
-        # Map dimensions
-        self.map_width = 30 * TILESIZE
-        self.map_height = 15 * TILESIZE
+        # Load map image
+        try:
+            self.map_image = pygame.image.load("assets/maps/map.png").convert_alpha()
+            # Scale the map to fit a reasonable game size (30 tiles wide x 15 tiles high)
+            target_width = 30 * TILESIZE
+            target_height = 15 * TILESIZE
+            self.map_image = pygame.transform.scale(self.map_image, (target_width, target_height))
+            self.map_width = self.map_image.get_width()
+            self.map_height = self.map_image.get_height()
+            print(f"Map image loaded and scaled: {self.map_width}x{self.map_height}")
+        except pygame.error as e:
+            print(f"Error loading map image: {e}")
+            # Fallback to colored background
+            self.map_width = 30 * TILESIZE
+            self.map_height = 15 * TILESIZE
+            self.map_image = None
 
     def new(self):
         """
@@ -99,9 +112,6 @@ class Game:
             tile_x, tile_y, sprite_path, name, pet, level, dialogue = npc_data
             npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, dialogue)
             self.npcs.append(npc)
-
-        # Background color
-        self.background_color = (50, 150, 50)  # Green grass color
 
     def events(self):
         # Handle game events
@@ -200,14 +210,20 @@ class Game:
         self.screen.fill((30, 30, 30))
 
         # Draw background (with camera offset)
-        map_surface = pygame.Surface((self.map_width, self.map_height))
-        map_surface.fill(self.background_color)
+        if self.map_image is not None:
+            # Create a fresh copy of the map image for this frame
+            map_surface = self.map_image.copy()
+        else:
+            # Fallback to colored background
+            map_surface = pygame.Surface((self.map_width, self.map_height))
+            map_surface.fill((50, 150, 50))
 
         # Draw grid lines to show movement
-        for x in range(0, self.map_width, TILESIZE):
-            pygame.draw.line(map_surface, (40, 140, 40), (x, 0), (x, self.map_height))
-        for y in range(0, self.map_height, TILESIZE):
-            pygame.draw.line(map_surface, (40, 140, 40), (0, y), (self.map_width, y))
+        if TILES_VISIBLE == 1:
+            for x in range(0, self.map_width, TILESIZE):
+                pygame.draw.line(map_surface, (40, 140, 40), (x, 0), (x, self.map_height))
+            for y in range(0, self.map_height, TILESIZE):
+                pygame.draw.line(map_surface, (40, 140, 40), (0, y), (self.map_width, y))
 
         # Blit map surface with camera offset
         self.screen.blit(map_surface, self.camera.camera.topleft)
