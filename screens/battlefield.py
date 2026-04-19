@@ -2,6 +2,7 @@ import pygame
 import sys
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font, BUTTON1
 from components.battle_actions import draw_enemy_actions, draw_player_actions
+from components.pause_menu import PauseMenu
 from core.battle_loader import load_battle_assets, draw_health_bar
 from core.battle_mechanics import process_queued_turn, generate_enemy_actions
 from core.gamedata import gamedata
@@ -13,6 +14,9 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
     Accepts initial HP values from previous rounds.
     """
     bg, left_char, right_char = load_battle_assets()
+    
+    # Initialize pause menu
+    pause_menu = PauseMenu()
 
     # Load player attributes from gamedata
     player_data = gamedata["player_data"][0]
@@ -58,6 +62,30 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
         # Get delta time
         dt = clock.tick(60)
 
+        # Handle pause menu if active
+        if pause_menu.active:
+            pause_result = pause_menu.handle_events()
+            if pause_result == "quit":
+                # Exit battle and return to game engine
+                pygame.event.clear()
+                return player_hp, enemy_hp, True
+            pause_menu.draw(SCREEN)
+            pygame.display.update()
+            continue  # Skip game logic when paused
+
+        for event in pygame.event.get():
+            # Handle quit event
+            if event.type == pygame.QUIT:
+                # Quit the game
+                pygame.quit()
+                sys.exit()
+            
+            # Handle pause toggle
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pause_menu.toggle()
+
+        # Draw game elements
         # Render background and combatants
         SCREEN.blit(bg, (0, 0))
         SCREEN.blit(left_char, left_rect)
@@ -91,6 +119,7 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
             pygame.draw.rect(SCREEN, (0, 0, 0), bg_rect, 3)
             SCREEN.blit(msg_surf, msg_rect)
 
+        # Game state logic (only runs when not paused)
         if state == "message":
             # Decrease message timer
             msg_timer -= dt
@@ -131,12 +160,5 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None):
                 # Return HP status: (player_hp, enemy_hp, battle_ended)
                 battle_ended = player_hp <= 0 or enemy_hp <= 0
                 return player_hp, enemy_hp, battle_ended
-
-        for event in pygame.event.get():
-            # Handle quit event
-            if event.type == pygame.QUIT:
-                # Quit the game
-                pygame.quit()
-                sys.exit()
 
         pygame.display.update()

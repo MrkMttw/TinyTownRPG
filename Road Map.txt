@@ -43,4 +43,4 @@ Sound effects
 Other mechanics
 - After defeating the opponent, it will gain 1 level and it will obtain the pet that the opponent has. It will not level up if the player level is not equal to the npc fought.
 - add pause button in the main game (ESC to use) - done
-- add pause button in the battlefield (ESC to use)
+- add pause button in the battlefield (ESC to use) - done
