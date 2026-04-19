@@ -1,20 +1,25 @@
 {
     "in_game_data": [
         {
-            "IF_PLAYED": 0,
+            "IF_PLAYED": 1,
             "CHARACTER": 1,
             "PET": 1
         }
     ],
     "player_data": [
         {
-            "NAME": "",
+            "NAME": "Jacky",
             "LEVEL": 1,
             "XP": 0,
             "HP": 100
         }
     ],
     "pets_collected": [
-        "sausage"
+        "sausage",
+        "bear",
+        "germs",
+        "pom",
+        "dino",
+        "balls"
     ]
 }

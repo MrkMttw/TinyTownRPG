@@ -190,7 +190,7 @@ class SettingsScreen:
             BACK_BUTTON = Button(
                 image=None,
                 pos=(WIN_WIDTH // 2, 550),
-                text_input="BACK",
+                text_input="SAVE",
                 font=get_font(30),
                 base_color="WHITE",
                 hovering_color="#FFE14D",

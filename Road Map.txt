@@ -1,8 +1,11 @@
 Map structure
+- use buildings.py to load house1 to house8
 - structure size is formatted using tilesize in the map
 - the location of the structure is also tilebased
 - add the background
 - uses the parameters (height,width,x,y,file_location) in inserting the structure
+- use structures.py to load structures and use the structures and do collision detection
+- use tilebased to determine the collision detection
 - structure collisions
 
 Game screen

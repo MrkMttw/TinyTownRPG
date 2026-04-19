@@ -4,6 +4,8 @@ from core.config import *
 from core.gamedata import gamedata
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
 from core.npc_attributes import NPC_ATTRIBUTES
+from core.structure_location import STRUCTURE_LOCATIONS
+from core.structures import Structure
 from sprites.player import GamePlayer
 from sprites.pet import GamePet
 from sprites.npc import NPC
@@ -91,6 +93,15 @@ class Game:
             self.map_height = 15 * TILESIZE
             self.map_image = None
 
+        # Load inventory button image
+        try:
+            self.inventory_button_image = pygame.image.load("assets/inventory.png").convert_alpha()
+            # Scale to reasonable button size
+            self.inventory_button_image = pygame.transform.scale(self.inventory_button_image, (60, 60))
+        except pygame.error as e:
+            print(f"Error loading inventory button image: {e}")
+            self.inventory_button_image = None
+
     def new(self):
         """
         Start a new game
@@ -112,6 +123,12 @@ class Game:
             tile_x, tile_y, sprite_path, name, pet, level, sound_fx_location, dialogue = npc_data
             npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, sound_fx_location, dialogue)
             self.npcs.append(npc)
+
+        # Create structures from structure_location.py
+        self.structures = []
+        for tile_x, tile_y, tile_width, tile_height, file_location in STRUCTURE_LOCATIONS:
+            structure = Structure(tile_x, tile_y, tile_width, tile_height, file_location)
+            self.structures.append(structure)
 
     def events(self):
         # Handle game events
@@ -176,12 +193,16 @@ class Game:
             
             # Handle mouse click for inventory button
             if event.type == pygame.MOUSEBUTTONDOWN and not self.dialogue_box.active and not self.pause_menu.active:
-                inventory_button_width = 120
-                inventory_button_height = 50
+                if self.inventory_button_image:
+                    inventory_button_width = 60
+                    inventory_button_height = 60
+                else:
+                    inventory_button_width = 120
+                    inventory_button_height = 50
                 inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
                 inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
                 inventory_button_rect = pygame.Rect(inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height)
-                
+
                 if inventory_button_rect.collidepoint(event.pos):
                     self.pet_inventory.toggle()
 
@@ -210,7 +231,7 @@ class Game:
             prev_x = self.player.rect.x
             prev_y = self.player.rect.y
             
-            self.player.update()
+            self.player.update(self.structures)
             self.pet.update()
             
             # Calculate movement deltas
@@ -247,6 +268,10 @@ class Game:
         # Blit map surface with camera offset
         self.screen.blit(map_surface, self.camera.camera.topleft)
 
+        # Draw structures with camera offset (after background, before NPCs)
+        for structure in self.structures:
+            structure.draw(self.screen, self.camera)
+
         # Create renderable objects list for y-based layering
         renderables = [
             {'type': 'npc', 'obj': npc, 'y': npc.rect.bottom} for npc in self.npcs
@@ -276,19 +301,27 @@ class Game:
         self.screen.blit(coord_text, (10, 35))
         
         # Draw inventory button in bottom middle
-        inventory_button_width = 120
-        inventory_button_height = 50
-        inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
-        inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
-        
-        # Draw button background
-        pygame.draw.rect(self.screen, (100, 100, 150), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height))
-        pygame.draw.rect(self.screen, (150, 150, 200), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height), 2)
-        
-        # Draw button text
-        inventory_text = get_font(20).render("Inventory", True, (255, 255, 255))
-        inventory_text_rect = inventory_text.get_rect(center=(inventory_button_x + inventory_button_width // 2, inventory_button_y + inventory_button_height // 2))
-        self.screen.blit(inventory_text, inventory_text_rect)
+        if self.inventory_button_image:
+            inventory_button_width = 60
+            inventory_button_height = 60
+            inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
+            inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
+            self.screen.blit(self.inventory_button_image, (inventory_button_x, inventory_button_y))
+        else:
+            # Fallback to rectangle if image not loaded
+            inventory_button_width = 120
+            inventory_button_height = 50
+            inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
+            inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
+
+            # Draw button background
+            pygame.draw.rect(self.screen, (100, 100, 150), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height))
+            pygame.draw.rect(self.screen, (150, 150, 200), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height), 2)
+
+            # Draw button text
+            inventory_text = get_font(20).render("Inventory", True, (255, 255, 255))
+            inventory_text_rect = inventory_text.get_rect(center=(inventory_button_x + inventory_button_width // 2, inventory_button_y + inventory_button_height // 2))
+            self.screen.blit(inventory_text, inventory_text_rect)
 
         # Show interaction prompt when near NPC (only if dialogue is not active)
         nearby_npc = self.get_nearby_npc()

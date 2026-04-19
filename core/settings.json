@@ -1,9 +1,9 @@
 {
     "SFX_ENABLED": true,
-    "SFX_VOLUME": 0.33,
+    "SFX_VOLUME": 0.20333333333333334,
     "BGM_ENABLED": true,
-    "BGM_VOLUME": 0.24333333333333335,
-    "FULLSCREEN": true,
+    "BGM_VOLUME": 0.20666666666666667,
+    "FULLSCREEN": false,
     "BGM_PATH": "assets/esefex/bg_sfx.mp3",
     "BATTLE_MUSIC_PATH": "assets/esefex/battle_sfx.mp3",
     "SFX_PATHS": {

@@ -3,8 +3,10 @@ from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
 from core.config import TILESIZE, PLAYER_SPEED, TILES_VISIBLE
 from core.gamedata import gamedata
 from core.npc_attributes import NPC_ATTRIBUTES
+from core.structure_location import STRUCTURE_LOCATIONS
 from components.player_movements import MapPlayer
 from sprites.npc import NPC
+from core.structures import Structure
 
 class Camera:
     """
@@ -82,6 +84,12 @@ def map_screen():
         npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, sound_fx_location, dialogue)
         npcs.append(npc)
 
+    # Create structures from structure_location.py
+    structures = []
+    for tile_x, tile_y, tile_width, tile_height, file_location in STRUCTURE_LOCATIONS:
+        structure = Structure(tile_x, tile_y, tile_width, tile_height, file_location)
+        structures.append(structure)
+
     clock = pygame.time.Clock()
 
     running = True
@@ -97,8 +105,8 @@ def map_screen():
                 if event.key == pygame.K_ESCAPE:
                     return  # Exit map screen
 
-        # Update player
-        player.update()
+        # Update player with structure collision checking
+        player.update(structures)
 
         # Update camera to follow player
         camera.update(player)
@@ -124,6 +132,10 @@ def map_screen():
 
         # Blit map surface with camera offset
         SCREEN.blit(map_surface, camera.camera.topleft)
+
+        # Draw structures with camera offset (after background, before NPCs)
+        for structure in structures:
+            structure.draw(SCREEN, camera)
 
         # Draw NPCs with camera offset (before player so player appears on top)
         for npc in npcs:

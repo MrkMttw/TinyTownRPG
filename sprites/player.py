@@ -196,19 +196,47 @@ class GamePlayer:
             self.facing = "down"
             is_moving = True
 
-    def update(self):
+    def update(self, structures=None):
         """
-        Update player position and animation
+        Update player position and animation with collision checking
         Args:
             self: Player instance
+            structures: List of Structure objects to check collision against (default None)
         Returns:
             None
         """
         # Handle movement
         self.movement()
-        # Update position
-        self.rect.x += self.x_change
-        self.rect.y += self.y_change
+        
+        # Calculate new position
+        new_x = self.rect.x + self.x_change
+        new_y = self.rect.y + self.y_change
+        
+        # Check collision with structures if provided
+        if structures:
+            # Create a temporary rect for the new position
+            temp_rect = self.rect.copy()
+            temp_rect.x = new_x
+            temp_rect.y = new_y
+            
+            # Check collision with each structure
+            collision_detected = False
+            for structure in structures:
+                if structure.check_collision(temp_rect):
+                    collision_detected = True
+                    break
+            
+            # Only apply movement if no collision
+            if not collision_detected:
+                self.rect.x = new_x
+                self.rect.y = new_y
+                # Re-center hitbox on new rect position
+                self.hitbox.center = self.rect.center
+        else:
+            # No structures to check, apply movement normally
+            self.rect.x = new_x
+            self.rect.y = new_y
+        
         # Update animation
         self.animation()
         # Reset change variables
