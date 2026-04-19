@@ -100,6 +100,9 @@ def map_screen():
         player_screen_x = WIN_WIDTH // 2 - player.width // 2
         player_screen_y = WIN_HEIGHT // 2 - player.height // 2
         SCREEN.blit(player.image, (player_screen_x, player_screen_y))
+        
+        # Draw player name and level above player
+        player.draw_info_label(SCREEN, player_screen_x, player_screen_y)
 
         # Draw UI
         info_text = get_font(20).render("WASD to move | ESC to pause", True, (255, 255, 255))

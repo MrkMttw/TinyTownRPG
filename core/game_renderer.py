@@ -61,6 +61,9 @@ class GameRenderer:
                 obj.draw(self.game.screen, self.game.camera)
             else:
                 self.game.screen.blit(obj.image, (screen_x, screen_y))
+                # Draw player name and level above player
+                if renderable['type'] == 'player':
+                    obj.draw_info_label(self.game.screen, screen_x, screen_y)
 
         # Draw UI
         info_text = get_font(20).render("WASD to move | SHIFT to sprint | F to interact | TAB for inventory | ESC to pause", True, (255, 255, 255))

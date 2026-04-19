@@ -2,6 +2,7 @@ import pygame
 from core.config import *
 import math
 from core.gamedata import gamedata
+from core.shared import get_font
 
 
 class GamePlayer:
@@ -206,6 +207,54 @@ class GamePlayer:
             self.y_change += speed
             self.facing = "down"
             is_moving = True
+
+    def draw_info_label(self, screen, screen_x, screen_y):
+        """
+        Draw player name and level above the player sprite
+        
+        Args:
+            screen: Pygame screen surface
+            screen_x: Player's screen x position
+            screen_y: Player's screen y position
+        Returns:
+            None
+        """
+        # Get player data from gamedata
+        player_name = gamedata["player_data"][0]["NAME"]
+        player_level = gamedata["player_data"][0]["LEVEL"]
+        
+        # If no name set, use default
+        if not player_name:
+            player_name = "Player"
+        
+        # Use game font
+        name_font = get_font(18)
+        
+        # Render name text
+        name_text = name_font.render(player_name, True, (255, 255, 255))
+        
+        # Render level text
+        level_text = name_font.render(f"Lvl {player_level}", True, (255, 215, 0))
+        
+        # Calculate positions (centered above player)
+        name_x = screen_x + self.width // 2 - name_text.get_width() // 2
+        name_y = screen_y - 25
+        level_x = screen_x + self.width // 2 - level_text.get_width() // 2
+        level_y = screen_y - 10
+        
+        # Create semi-transparent black background for name
+        bg_width = max(name_text.get_width(), level_text.get_width()) + 10
+        bg_height = 35
+        bg_x = screen_x + self.width // 2 - bg_width // 2
+        bg_y = screen_y - 30
+        
+        bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
+        bg_surface.fill((0, 0, 0, 128))  # Semi-transparent black (alpha = 128)
+        screen.blit(bg_surface, (bg_x, bg_y))
+        
+        # Draw text
+        screen.blit(name_text, (name_x, name_y))
+        screen.blit(level_text, (level_x, level_y))
 
     def update(self, structures=None):
         """
