@@ -114,15 +114,7 @@ def enter_name(
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         # scrolling background
-        for i in range(tiles):
-            # Scroll the background
-            SCREEN.blit(bg, (i * bg_width + scroll, 0))
-
-        # Update scroll position
-        scroll -= 1.2
-        if abs(scroll) > bg_width:
-            # Reset scroll position
-            scroll = 0
+        scroll = draw_scrolling_bg(scroll, 1.2)
 
         # Render title text
         ENTER_NAME_TEXT = get_font(80).render("ENTER YOUR NAME", True, "Black")
@@ -261,12 +253,7 @@ def tutorial_controls():
         TUTORIAL_MOUSE_POS = pygame.mouse.get_pos()
         
         # Scrolling background
-        for i in range(tiles):
-            SCREEN.blit(bg, (i * bg_width + scroll, 0))
-        
-        scroll -= 1
-        if abs(scroll) > bg_width:
-            scroll = 0
+        scroll = draw_scrolling_bg(scroll, 1)
         
         # Title
         TITLE_TEXT = get_font(60).render("TUTORIAL", True, "Black")

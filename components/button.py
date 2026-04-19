@@ -75,7 +75,7 @@ class Button():
 		Returns:
 			True if the button is clicked, False otherwise
 		"""
-		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+		if self.rect.collidepoint(position):
 			# If the mouse is over the button, return True
 			return True
 		return False
@@ -90,7 +90,7 @@ class Button():
 		Returns:
 			None
 		"""
-		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+		if self.rect.collidepoint(position):
 			# If the mouse is over the button, change the color
 			self.text = self.font.render(self.text_input, True, self.hovering_color)
 		else:

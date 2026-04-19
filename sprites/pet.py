@@ -37,29 +37,12 @@ class GamePet:
         self.width = PET_SIZE
         self.height = PET_SIZE
         self.facing = "down"
-        self.animation_loop = 1
+        self.animation_loop = 0
         self.is_moving = False
 
         # Load pet based on gamedata
         pet_val = gamedata["in_game_data"][0]["PET"]
-        if pet_val == 1:
-            path = "assets/pets/Sausage"
-            PET_NAME = "sausage"
-        elif pet_val == 2:
-            path = "assets/pets/Bear"
-            PET_NAME = "bear"
-        elif pet_val == 3:
-            path = "assets/pets/Germs"
-            PET_NAME = "germs"
-        elif pet_val == 4:
-            path = "assets/pets/Pompoms"
-            PET_NAME = "pom"
-        elif pet_val == 5:
-            path = "assets/pets/Dino"
-            PET_NAME = "dino"        
-        elif pet_val == 6:
-            path = "assets/pets/Balls"
-            PET_NAME = "balls"
+        path, PET_NAME = PET_PATHS.get(pet_val, ("assets/pets/Sausage", "sausage"))
 
         # Load animations
         self.down_animations = self.load_animation_set(path, PET_NAME, "down")
@@ -86,12 +69,19 @@ class GamePet:
         Returns:
             List of scaled animation frames
         """
-        # Load animation frames
-        frames = [
-            pygame.image.load(f"{path}/{name}_{direction}_stand.png"),
-            pygame.image.load(f"{path}/{name}_{direction}_walk1.png"),
-            pygame.image.load(f"{path}/{name}_{direction}_walk2.png"),
-        ]
+        # Load animation frames with error handling
+        frames = []
+        for frame_name in ["stand", "walk1", "walk2"]:
+            try:
+                frame = pygame.image.load(f"{path}/{name}_{direction}_{frame_name}.png")
+                frames.append(frame)
+            except pygame.error as e:
+                print(f"Error loading pet animation frame {frame_name} for {name} {direction}: {e}")
+                # Use a placeholder surface if frame fails to load
+                placeholder = pygame.Surface((self.width, self.height))
+                placeholder.fill((255, 0, 255))  # Magenta for missing assets
+                frames.append(placeholder)
+        
         # Scale frames to pet size
         return [
             pygame.transform.scale(img, (self.width, self.height)) for img in frames
@@ -142,11 +132,11 @@ class GamePet:
                 self.image = self.down_animations[0]
             else:
                 # Walking animation
-                self.image = self.down_animations[math.floor(self.animation_loop)]
+                self.image = self.down_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.down_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
 
         elif self.facing == "up":
             """
@@ -157,11 +147,11 @@ class GamePet:
                 self.image = self.up_animations[0]
             else:
                 # Walking animation
-                self.image = self.up_animations[math.floor(self.animation_loop)]
+                self.image = self.up_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.up_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
 
         elif self.facing == "left":
             """
@@ -172,11 +162,11 @@ class GamePet:
                 self.image = self.left_animations[0]
             else:
                 # Walking animation
-                self.image = self.left_animations[math.floor(self.animation_loop)]
+                self.image = self.left_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.left_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
 
         elif self.facing == "right":
             """
@@ -187,11 +177,11 @@ class GamePet:
                 self.image = self.right_animations[0]
             else:
                 # Walking animation
-                self.image = self.right_animations[math.floor(self.animation_loop)]
+                self.image = self.right_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.right_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
 
     def update(self):
         """

@@ -1,6 +1,7 @@
 import pygame
 from core.shared import WIN_WIDTH, WIN_HEIGHT, get_font
 from core.gamedata import gamedata
+from core.config import PET_PATHS
 
 
 def load_battle_assets(npc=None):
@@ -16,9 +17,14 @@ def load_battle_assets(npc=None):
     print("[DEBUG] Loading battle assets...")
 
     # Load background
-    bg = pygame.image.load("assets/maps/DomainExpansion.png").convert()
-    bg = pygame.transform.scale(bg, (WIN_WIDTH, WIN_HEIGHT))
-    print(f"[DEBUG] Background loaded, size: {bg.get_size()}")
+    try:
+        bg = pygame.image.load("assets/maps/DomainExpansion.png").convert()
+        bg = pygame.transform.scale(bg, (WIN_WIDTH, WIN_HEIGHT))
+        print(f"[DEBUG] Background loaded, size: {bg.get_size()}")
+    except pygame.error as e:
+        print(f"Error loading battle background: {e}")
+        bg = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
+        bg.fill((50, 50, 80))
 
     char_id = gamedata["in_game_data"][0]["CHARACTER"]
     print(f"[DEBUG] Character ID: {char_id}")
@@ -29,10 +35,14 @@ def load_battle_assets(npc=None):
         left_path = "assets/characters/Boy/boy_right_stand.png"
 
     # Load player character
-    left_char = pygame.image.load(left_path).convert_alpha()
-    print(f"[DEBUG] Left char loaded, original size: {left_char.get_size()}")
-    left_char = pygame.transform.scale_by(left_char, 0.3)  # zoom in for battle portrait
-    print(f"[DEBUG] Left char scaled, new size: {left_char.get_size()}")
+    try:
+        left_char = pygame.image.load(left_path).convert_alpha()
+        print(f"[DEBUG] Left char loaded, original size: {left_char.get_size()}")
+        left_char = pygame.transform.scale_by(left_char, 0.3)  # zoom in for battle portrait
+        print(f"[DEBUG] Left char scaled, new size: {left_char.get_size()}")
+    except pygame.error as e:
+        print(f"Error loading player character: {e}")
+        left_char = None
 
     # Load enemy character (use NPC sprite if provided, otherwise default)
     if npc and hasattr(npc, 'sprite_path'):
@@ -40,10 +50,14 @@ def load_battle_assets(npc=None):
     else:
         enemy_path = "assets/characters/Boy/boy_left_stand.png"
 
-    right_char = pygame.image.load(enemy_path).convert_alpha()
-    print(f"[DEBUG] Right char loaded, original size: {right_char.get_size()}")
-    right_char = pygame.transform.scale_by(right_char, 0.3)
-    print(f"[DEBUG] Right char scaled, new size: {right_char.get_size()}")
+    try:
+        right_char = pygame.image.load(enemy_path).convert_alpha()
+        print(f"[DEBUG] Right char loaded, original size: {right_char.get_size()}")
+        right_char = pygame.transform.scale_by(right_char, 0.3)
+        print(f"[DEBUG] Right char scaled, new size: {right_char.get_size()}")
+    except pygame.error as e:
+        print(f"Error loading enemy character: {e}")
+        right_char = None
 
     # Load player pet
     player_pet_val = gamedata["in_game_data"][0]["PET"]
@@ -78,15 +92,8 @@ def get_pet_name(pet_val):
     Returns:
         str: Pet name
     """
-    pet_names = {
-        1: "sausage",
-        2: "bear",
-        3: "germs",
-        4: "pom",
-        5: "dino",
-        6: "balls"
-    }
-    return pet_names.get(pet_val, "sausage")
+    path, pet_name = PET_PATHS.get(pet_val, ("assets/pets/Sausage", "sausage"))
+    return pet_name
 
 
 def load_pet_stance(pet_name, stance):
@@ -126,6 +133,27 @@ def load_pet_stance(pet_name, stance):
             except FileNotFoundError:
                 print(f"[WARNING] Fallback image not found: {fallback_path}")
         return None
+
+
+def update_pet_sprite(pet_name, stance, scale=0.25, flip_horizontal=False):
+    """
+    Load and scale a pet sprite with the given stance.
+    
+    Args:
+        pet_name: Name of the pet (e.g., "sausage", "balls")
+        stance: Stance to load ("attack", "def", "break", "stand")
+        scale: Scale factor (default 0.25 for battle)
+        flip_horizontal: Whether to flip the sprite horizontally
+        
+    Returns:
+        pygame.Surface: Scaled pet sprite or None if not found
+    """
+    new_pet = load_pet_stance(pet_name, stance)
+    if new_pet:
+        new_pet = pygame.transform.scale_by(new_pet, scale)
+        if flip_horizontal:
+            new_pet = pygame.transform.flip(new_pet, True, False)
+    return new_pet
 
 
 def draw_health_bar(surface, x, y, width, height, current_hp, max_hp, name):

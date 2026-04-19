@@ -10,39 +10,12 @@ from sprites.player import GamePlayer
 from sprites.pet import GamePet
 from sprites.npc import NPC
 from components.dialogue_box import DialogueBox
-from screens.battlefield import battlefield_screen
-from components.queue import queue_screen
 from components.pause_menu import PauseMenu
 from components.pet_inventory import PetInventory
+from core.game_renderer import GameRenderer
+from core.game_events import GameEvents
+from core.camera import Camera
 import math
-
-
-class Camera:
-    """Camera class to handle camera movement
-    
-    Attributes:
-        camera: Pygame rectangle representing the camera view
-        width: Width of the camera view
-        height: Height of the camera view
-    """
-    def __init__(self, width, height):
-        # Initialize camera at position (0, 0)
-        self.camera = pygame.Rect(0, 0, width, height)
-        self.width = width
-        self.height = height
-
-    def update(self, target):
-        # Update camera position to follow target (player)
-        x = -target.rect.centerx + int(WIN_WIDTH / 2)
-        y = -target.rect.centery + int(WIN_HEIGHT / 2)
-
-        # Limit scrolling to map size
-        x = min(0, x)  # left
-        y = min(0, y)  # top
-        x = max(-(self.width - WIN_WIDTH), x)  # right
-        y = max(-(self.height - WIN_HEIGHT), y)  # bottom
-
-        self.camera = pygame.Rect(x, y, self.width, self.height)
 
 
 class Game:
@@ -75,6 +48,10 @@ class Game:
         self.pause_menu = PauseMenu()
         self.pet_inventory = PetInventory(self)
         self.challenged_npc = None  # Store the NPC being challenged
+        
+        # Initialize renderer and events handlers
+        self.renderer = GameRenderer(self)
+        self.event_handler = GameEvents(self)
 
         # Load map image
         try:
@@ -131,80 +108,7 @@ class Game:
             self.structures.append(structure)
 
     def events(self):
-        # Handle game events
-        # If pause menu is active, delegate to pause menu event handler
-        if self.pause_menu.active:
-            result = self.pause_menu.handle_events()
-            if result == "quit":
-                self.playing = False
-                self.running = False
-            elif result == "settings":
-                from screens.settings import show_settings
-                show_settings()
-            return
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.playing = False
-                self.running = False
-            
-            # Handle inventory input if active
-            if self.pet_inventory.active:
-                self.pet_inventory.handle_input(event)
-                continue
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE and not self.dialogue_box.active and not self.pet_inventory.active:
-                    self.pause_menu.toggle()
-                # Handle TAB for inventory (only when not in dialogue or pause menu)
-                if event.key == pygame.K_TAB and not self.dialogue_box.active and not self.pause_menu.active:
-                    self.pet_inventory.toggle()
-                # Handle dialogue input first
-                if self.dialogue_box.active:
-                    result = self.dialogue_box.handle_input(event)
-                    if result == "battle":
-                        # Store the challenged NPC
-                        self.challenged_npc = self.get_nearby_npc()
-                        # Trigger battle
-                        player_hp = None
-                        enemy_hp = None
-                        battle_ended = False
-
-                        while not battle_ended:
-                            pygame.mixer.stop()  # Stop all sounds including voicelines before queue phase
-                            action_queue = queue_screen()
-                            player_hp, enemy_hp, battle_ended, exit_to_homescreen = battlefield_screen(action_queue, player_hp, enemy_hp, self.challenged_npc)
-                            if exit_to_homescreen:
-                                # Exit game loop to return to homescreen
-                                self.playing = False
-                                break
-                # Only handle F key for interaction if dialogue is not active and not paused
-                elif event.key == pygame.K_f and not self.pause_menu.active and not self.pet_inventory.active:
-                    nearby_npc = self.get_nearby_npc()
-                    if nearby_npc:
-                        # Play sound effect if available
-                        if nearby_npc.sound_fx_location:
-                            try:
-                                sound = pygame.mixer.Sound(nearby_npc.sound_fx_location)
-                                sound.play()
-                            except pygame.error as e:
-                                print(f"Error loading sound effect: {e}")
-                        self.dialogue_box.start_dialogue(nearby_npc.name, nearby_npc.dialogue)
-            
-            # Handle mouse click for inventory button
-            if event.type == pygame.MOUSEBUTTONDOWN and not self.dialogue_box.active and not self.pause_menu.active:
-                if self.inventory_button_image:
-                    inventory_button_width = 60
-                    inventory_button_height = 60
-                else:
-                    inventory_button_width = 120
-                    inventory_button_height = 50
-                inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
-                inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
-                inventory_button_rect = pygame.Rect(inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height)
-
-                if inventory_button_rect.collidepoint(event.pos):
-                    self.pet_inventory.toggle()
+        self.event_handler.events()
 
     def get_nearby_npc(self):
         # Check if player is within 1 tile of any NPC and return that NPC
@@ -245,103 +149,7 @@ class Game:
             self.camera.update(self.player)
 
     def draw(self):
-        # Draw game objects to the screen
-        # Clear screen
-        self.screen.fill((30, 30, 30))
-
-        # Draw background (with camera offset)
-        if self.map_image is not None:
-            # Create a fresh copy of the map image for this frame
-            map_surface = self.map_image.copy()
-        else:
-            # Fallback to colored background
-            map_surface = pygame.Surface((self.map_width, self.map_height))
-            map_surface.fill((50, 150, 50))
-
-        # Draw grid lines to show movement
-        if TILES_VISIBLE == 1:
-            for x in range(0, self.map_width, TILESIZE):
-                pygame.draw.line(map_surface, (40, 140, 40), (x, 0), (x, self.map_height))
-            for y in range(0, self.map_height, TILESIZE):
-                pygame.draw.line(map_surface, (40, 140, 40), (0, y), (self.map_width, y))
-
-        # Blit map surface with camera offset
-        self.screen.blit(map_surface, self.camera.camera.topleft)
-
-        # Draw structures with camera offset (after background, before NPCs)
-        for structure in self.structures:
-            structure.draw(self.screen, self.camera)
-
-        # Create renderable objects list for y-based layering
-        renderables = [
-            {'type': 'npc', 'obj': npc, 'y': npc.rect.bottom} for npc in self.npcs
-        ]
-        renderables.append({'type': 'pet', 'obj': self.pet, 'y': self.pet.rect.bottom})
-        renderables.append({'type': 'player', 'obj': self.player, 'y': self.player.rect.bottom})
-
-        # Sort by y-coordinate (ascending) for proper depth layering
-        renderables.sort(key=lambda x: x['y'])
-
-        # Draw sprites in sorted order
-        for renderable in renderables:
-            obj = renderable['obj']
-            screen_x = obj.rect.x + self.camera.camera.x
-            screen_y = obj.rect.y + self.camera.camera.y
-
-            if renderable['type'] == 'npc':
-                obj.draw(self.screen, self.camera)
-            else:
-                self.screen.blit(obj.image, (screen_x, screen_y))
-
-        # Draw UI
-        info_text = get_font(20).render("WASD to move | SHIFT to sprint | F to interact | TAB for inventory | ESC to pause", True, (255, 255, 255))
-        self.screen.blit(info_text, (10, 10))
-
-        coord_text = get_font(20).render(f"Pos: ({self.player.rect.x // TILESIZE}, {self.player.rect.y // TILESIZE})", True, (255, 255, 255))
-        self.screen.blit(coord_text, (10, 35))
-        
-        # Draw inventory button in bottom middle
-        if self.inventory_button_image:
-            inventory_button_width = 60
-            inventory_button_height = 60
-            inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
-            inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
-            self.screen.blit(self.inventory_button_image, (inventory_button_x, inventory_button_y))
-        else:
-            # Fallback to rectangle if image not loaded
-            inventory_button_width = 120
-            inventory_button_height = 50
-            inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
-            inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
-
-            # Draw button background
-            pygame.draw.rect(self.screen, (100, 100, 150), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height))
-            pygame.draw.rect(self.screen, (150, 150, 200), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height), 2)
-
-            # Draw button text
-            inventory_text = get_font(20).render("Inventory", True, (255, 255, 255))
-            inventory_text_rect = inventory_text.get_rect(center=(inventory_button_x + inventory_button_width // 2, inventory_button_y + inventory_button_height // 2))
-            self.screen.blit(inventory_text, inventory_text_rect)
-
-        # Show interaction prompt when near NPC (only if dialogue is not active)
-        nearby_npc = self.get_nearby_npc()
-        if nearby_npc and not self.dialogue_box.active:
-            prompt_text = get_font(24).render(f"Press F to interact with {nearby_npc.name}", True, (255, 255, 0))
-            prompt_rect = prompt_text.get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT - 50))
-            self.screen.blit(prompt_text, prompt_rect)
-
-        # Draw dialogue box if active
-        self.dialogue_box.draw(self.screen)
-
-        # Draw pet inventory if active
-        self.pet_inventory.draw(self.screen)
-
-        # Draw pause menu if active
-        if self.pause_menu.active:
-            self.pause_menu.draw(self.screen)
-
-        pygame.display.update()
-        self.clock.tick(FPS)
+        self.renderer.draw()
 
     def main(self):
         """

@@ -3,10 +3,12 @@ import sys
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font, BUTTON1
 from components.battle_actions import draw_enemy_actions, draw_player_actions
 from components.pause_menu import PauseMenu
-from core.battle_loader import load_battle_assets, draw_health_bar, load_pet_stance, get_pet_name
+from components.battle_result_panel import show_battle_result_panel
+from core.battle_loader import load_battle_assets, draw_health_bar, load_pet_stance, get_pet_name, update_pet_sprite
 from core.battle_mechanics import process_queued_turn, generate_enemy_actions
 from core.gamedata import gamedata
 from core.config import SETTINGS
+from core.audio_manager import play_battle_music, resume_bgm, load_battle_sfx
 
 def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=None):
     """
@@ -28,23 +30,11 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     if enemy_pet:
         enemy_pet = pygame.transform.flip(enemy_pet, True, False)
     
-    # Pause background music during battle
-    pygame.mixer.music.pause()
+    # Play battle music
+    play_battle_music()
     
-    # Load battle music from settings
-    battle_music_path = SETTINGS.get("BATTLE_MUSIC_PATH", "assets/esefex/battle_sfx.mp3")
-    pygame.mixer.music.load(battle_music_path)
-    if SETTINGS["BGM_ENABLED"]:
-        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
-        pygame.mixer.music.play(-1)  # Loop battle music
-    
-    # Load sound effects from settings
-    sfx_paths = SETTINGS.get("SFX_PATHS", {})
-    attack_sfx = pygame.mixer.Sound(sfx_paths.get("attack", "assets/esefex/attack_sfx.mp3"))
-    defense_sfx = pygame.mixer.Sound(sfx_paths.get("defense", "assets/esefex/defense_sfx.mp3"))
-    breakarmor_sfx = pygame.mixer.Sound(sfx_paths.get("breakarmor", "assets/esefex/breakarmor_sfx.mp3"))
-    victory_sfx = pygame.mixer.Sound(sfx_paths.get("victory", "assets/esefex/victory_sfx.mp3"))
-    defeat_sfx = pygame.mixer.Sound(sfx_paths.get("defeat", "assets/esefex/defeat_sfx.mp3"))
+    # Load sound effects
+    sfx = load_battle_sfx()
     
     # Initialize pause menu
     pause_menu = PauseMenu()
@@ -114,13 +104,8 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
         if pause_menu.active:
             pause_result = pause_menu.handle_events()
             if pause_result == "quit":
-                # Stop battle music and reload background music before exiting
-                pygame.mixer.music.stop()
-                bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
-                pygame.mixer.music.load(bgm_path)
-                if SETTINGS["BGM_ENABLED"]:
-                    pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
-                    pygame.mixer.music.play(-1)
+                # Resume background music before exiting
+                resume_bgm()
                 # Exit battle and return to game engine
                 pygame.event.clear()
                 return player_hp, enemy_hp, True, False
@@ -199,15 +184,10 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                         
                         # Reload pet sprites with stand stance
                         if player_pet_name:
-                            new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
-                            if new_player_pet:
-                                player_pet = pygame.transform.scale_by(new_player_pet, 0.25)
+                            player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
                         
                         if enemy_pet_name:
-                            new_enemy_pet = load_pet_stance(enemy_pet_name, current_enemy_pet_stance)
-                            if new_enemy_pet:
-                                enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.25)
-                                enemy_pet = pygame.transform.flip(enemy_pet, True, False)
+                            enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
                     else:
                         # All turns complete or no queue
                         state = "game_over"
@@ -241,23 +221,18 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 
                 # Play action SFX
                 if player_action == "attack":
-                    attack_sfx.play()
+                    sfx["attack"].play()
                 elif player_action == "defense":
-                    defense_sfx.play()
+                    sfx["defense"].play()
                 elif player_action == "break":
-                    breakarmor_sfx.play()
+                    sfx["breakarmor"].play()
                 
                 # Reload pet sprites with action stances
                 if player_pet_name:
-                    new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
-                    if new_player_pet:
-                        player_pet = pygame.transform.scale_by(new_player_pet, 0.25)
+                    player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
                 
                 if enemy_pet_name:
-                    new_enemy_pet = load_pet_stance(enemy_pet_name, current_enemy_pet_stance)
-                    if new_enemy_pet:
-                        enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.25)
-                        enemy_pet = pygame.transform.flip(enemy_pet, True, False)
+                    enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
 
         elif state == "action":
             # Show action animation
@@ -287,15 +262,10 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 
                 # Reload pet sprites with stand stance
                 if player_pet_name:
-                    new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
-                    if new_player_pet:
-                        player_pet = pygame.transform.scale_by(new_player_pet, 0.25)
+                    player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
                 
                 if enemy_pet_name:
-                    new_enemy_pet = load_pet_stance(enemy_pet_name, current_enemy_pet_stance)
-                    if new_enemy_pet:
-                        enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.25)
-                        enemy_pet = pygame.transform.flip(enemy_pet, True, False)
+                    enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
                 
                 current_turn_index += 1
 
@@ -314,114 +284,16 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 # Only show panel if battle actually ended (someone's HP <= 0)
                 if player_hp > 0 and enemy_hp > 0:
                     # Round complete with both alive - return without panel
-                    pygame.mixer.music.stop()
-                    bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
-                    pygame.mixer.music.load(bgm_path)
-                    if SETTINGS["BGM_ENABLED"]:
-                        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
-                        pygame.mixer.music.play(-1)
+                    resume_bgm()
                     return player_hp, enemy_hp, False, False
                 
-                # Stop battle music before playing victory/defeat sounds
-                pygame.mixer.music.stop()
-                
                 # Show victory/defeat panel
-                char_id = gamedata["in_game_data"][0]["CHARACTER"]
-                if enemy_hp <= 0:
-                    # Victory
-                    victory_sfx.play()
-                    if char_id == 1:
-                        panel_path = "assets/banner/girl_vic.png"
-                    else:
-                        panel_path = "assets/banner/boy_vic.png"
-                    # Implement level-up and pet collection
-                    if npc and player_level == npc.level:
-                        # Level up
-                        gamedata["player_data"][0]["LEVEL"] += 1
-                        # Add pet to collection if not already owned
-                        if npc.pet and npc.pet not in gamedata.get("pets_collected", []):
-                            if "pets_collected" not in gamedata:
-                                gamedata["pets_collected"] = []
-                            gamedata["pets_collected"].append(npc.pet)
-                            from core.gamedata import update_game_data
-                            update_game_data()
-                        
-                        # Check if player reached level 7 - trigger outro
-                        if gamedata["player_data"][0]["LEVEL"] == 7:
-                            from screens.outro import outro_screen
-                            should_exit = outro_screen()
-                            if should_exit:
-                                # Exit battle and signal game to exit
-                                pygame.mixer.music.stop()
-                                bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
-                                pygame.mixer.music.load(bgm_path)
-                                if SETTINGS["BGM_ENABLED"]:
-                                    pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
-                                    pygame.mixer.music.play(-1)
-                                pygame.event.clear()
-                                return player_hp, enemy_hp, True, True  # Fourth flag = exit to homescreen
-                    victory = True
-                else:
-                    # Defeat
-                    defeat_sfx.play()
-                    if char_id == 1:
-                        panel_path = "assets/banner/girl_defeat.png"
-                    else:
-                        panel_path = "assets/banner/boy_defeat.png"
-                    victory = False
-                
-                # Load and display panel
-                try:
-                    panel = pygame.image.load(panel_path).convert_alpha()
-                    panel = pygame.transform.scale(panel, (WIN_WIDTH // 2, WIN_HEIGHT // 2))
-                    panel_rect = panel.get_rect(center=(WIN_WIDTH // 2, WIN_HEIGHT // 2))
-                    
-                    # Draw panel with semi-transparent overlay
-                    overlay = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
-                    overlay.set_alpha(200)
-                    overlay.fill((0, 0, 0))
-                    SCREEN.blit(overlay, (0, 0))
-                    SCREEN.blit(panel, panel_rect)
-                    
-                    # Add continue button
-                    button_rect = pygame.Rect(0, 0, 200, 50)
-                    button_rect.center = (WIN_WIDTH // 2, WIN_HEIGHT // 2 + panel_rect.height // 2 + 50)
-                    pygame.draw.rect(SCREEN, (100, 100, 100), button_rect)
-                    button_text = get_font(24).render("Continue", True, (255, 255, 255))
-                    button_text_rect = button_text.get_rect(center=button_rect.center)
-                    SCREEN.blit(button_text, button_text_rect)
-                    
-                    pygame.display.update()
-                    
-                    # Wait for continue button click
-                    waiting = True
-                    while waiting:
-                        for event in pygame.event.get():
-                            if event.type == pygame.QUIT:
-                                pygame.quit()
-                                sys.exit()
-                            if event.type == pygame.MOUSEBUTTONDOWN:
-                                if button_rect.collidepoint(event.pos):
-                                    bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
-                                    pygame.mixer.music.load(bgm_path)
-                                    if SETTINGS["BGM_ENABLED"]:
-                                        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
-                                        pygame.mixer.music.play(-1)
-                                    waiting = False
-                            if event.type == pygame.KEYDOWN:
-                                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                                    bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
-                                    pygame.mixer.music.load(bgm_path)
-                                    if SETTINGS["BGM_ENABLED"]:
-                                        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
-                                        pygame.mixer.music.play(-1)
-                                    waiting = False
-                except FileNotFoundError:
-                    print(f"[WARNING] Panel not found: {panel_path}")
+                is_victory = enemy_hp <= 0
+                exit_to_homescreen = show_battle_result_panel(is_victory, npc, player_level)
                 
                 # Return HP status: (player_hp, enemy_hp, battle_ended, exit_to_homescreen)
                 battle_ended = player_hp <= 0 or enemy_hp <= 0
                 
-                return player_hp, enemy_hp, battle_ended, False
+                return player_hp, enemy_hp, battle_ended, exit_to_homescreen
 
         pygame.display.update()

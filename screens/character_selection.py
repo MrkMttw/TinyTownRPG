@@ -32,13 +32,7 @@ def character_selection_screen(on_select_callback, back_callback):
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         # Scrolling background logic
-        for i in range(tiles):
-            SCREEN.blit(bg, (i * bg_width + scroll, 0))
-
-        scroll -= 1.2
-        if abs(scroll) > bg_width:
-            # Reset scroll when image repeats
-            scroll = 0
+        scroll = draw_scrolling_bg(scroll, 1.2)
 
         # UI Elements
         BOY_RECT = BOY.get_rect(center=(250, 360))
@@ -135,14 +129,7 @@ def character_selected():
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
         # scrolling background
-        for i in range(tiles):
-            # Draw background tiles with scrolling effect
-            SCREEN.blit(bg, (i * bg_width + scroll, 0))
-
-        scroll -= 0.4
-        if abs(scroll) > bg_width:
-            # Reset scroll position when background repeats
-            scroll = 0
+        scroll = draw_scrolling_bg(scroll, 0.4)
 
         # Create character selected text
         CHARACTER_SELECTED = get_font(80).render(

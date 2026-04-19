@@ -41,7 +41,7 @@ class GamePlayer:
         self.x_change = 0
         self.y_change = 0
         self.facing = "down"
-        self.animation_loop = 1
+        self.animation_loop = 0
 
         # Load character based on gamedata
         char_val = gamedata["in_game_data"][0]["CHARACTER"]
@@ -51,6 +51,10 @@ class GamePlayer:
         elif char_val == 2:
             path = "assets/characters/Boy"
             CHARACTER_NAME = "boy"
+        else:
+            # Default to Girl if invalid character value
+            path = "assets/characters/Girl"
+            CHARACTER_NAME = "girl"
 
         # Load animations
         self.down_animations = self.load_animation_set(path, CHARACTER_NAME, "down")
@@ -82,12 +86,19 @@ class GamePlayer:
         Returns:
             List of scaled animation frames
         """
-        # Load animation frames
-        frames = [
-            pygame.image.load(f"{path}/{name}_{direction}_stand.png"),
-            pygame.image.load(f"{path}/{name}_{direction}_walk1.png"),
-            pygame.image.load(f"{path}/{name}_{direction}_walk2.png"),
-        ]
+        # Load animation frames with error handling
+        frames = []
+        for frame_name in ["stand", "walk1", "walk2"]:
+            try:
+                frame = pygame.image.load(f"{path}/{name}_{direction}_{frame_name}.png")
+                frames.append(frame)
+            except pygame.error as e:
+                print(f"Error loading animation frame {frame_name} for {name} {direction}: {e}")
+                # Use a placeholder surface if frame fails to load
+                placeholder = pygame.Surface((self.width, self.height))
+                placeholder.fill((255, 0, 255))  # Magenta for missing assets
+                frames.append(placeholder)
+        
         # Scale frames to player size
         return [
             pygame.transform.scale(img, (self.width, self.height)) for img in frames
@@ -108,11 +119,11 @@ class GamePlayer:
                 self.image = self.down_animations[0]
             else:
                 # Walking animation
-                self.image = self.down_animations[math.floor(self.animation_loop)]
+                self.image = self.down_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.down_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
             self.mask = pygame.mask.from_surface(self.image)
 
         elif self.facing == "up":
@@ -122,11 +133,11 @@ class GamePlayer:
                 self.image = self.up_animations[0]
             else:
                 # Walking animation
-                self.image = self.up_animations[math.floor(self.animation_loop)]
+                self.image = self.up_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.up_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
             self.mask = pygame.mask.from_surface(self.image)
 
         elif self.facing == "left":
@@ -136,11 +147,11 @@ class GamePlayer:
                 self.image = self.left_animations[0]
             else:
                 # Walking animation
-                self.image = self.left_animations[math.floor(self.animation_loop)]
+                self.image = self.left_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.left_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
             self.mask = pygame.mask.from_surface(self.image)
 
         elif self.facing == "right":
@@ -150,11 +161,11 @@ class GamePlayer:
                 self.image = self.right_animations[0]
             else:
                 # Walking animation
-                self.image = self.right_animations[math.floor(self.animation_loop)]
+                self.image = self.right_animations[int(self.animation_loop)]
                 self.animation_loop += 0.2
                 if self.animation_loop >= len(self.right_animations):
                     # Loop animation
-                    self.animation_loop = 1
+                    self.animation_loop = 0
             self.mask = pygame.mask.from_surface(self.image)
 
     def movement(self):

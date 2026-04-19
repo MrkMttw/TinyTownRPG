@@ -35,13 +35,7 @@ def main_menu():
         MENU_MOUSE_POS = pygame.mouse.get_pos()
 
         # scrolling background
-        for i in range(tiles):
-            SCREEN.blit(bg, (i * bg_width + scroll, 0))
-            
-        # Update scroll position
-        scroll -= 1
-        if abs(scroll) > bg_width:
-            scroll = 0
+        scroll = draw_scrolling_bg(scroll, 1)
 
         # logo
         LOGO_RECT = LOGO.get_rect(center=(640, 250))

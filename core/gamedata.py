@@ -1,4 +1,5 @@
 import json
+import os
 
 # Initialize game data with default values
 gamedata = {
@@ -9,7 +10,8 @@ gamedata = {
 
 try:
     # Try to load existing game data
-    with open("core/gamedata.json", "r", encoding="utf-8") as f:
+    gamedata_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "core", "gamedata.json")
+    with open(gamedata_path, "r", encoding="utf-8") as f:
         gamedata = json.load(f)
 except FileNotFoundError:
     # If file doesn't exist, use default data
@@ -18,7 +20,8 @@ except FileNotFoundError:
 
 def update_game_data():
     # Update game data to JSON file
-    with open("core/gamedata.json", "w", encoding="utf-8") as f:
+    gamedata_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "core", "gamedata.json")
+    with open(gamedata_path, "w", encoding="utf-8") as f:
         json.dump(gamedata, f, indent=4)
 
 

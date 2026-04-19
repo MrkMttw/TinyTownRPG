@@ -1,0 +1,173 @@
+# TinyTownRPG — Refactoring Analysis
+
+## Current File Line Counts
+
+| File | Lines | Category |
+|------|------:|----------|
+| [game_engine.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/game_engine.py) | 371 | Core |
+| [battlefield.py](file:///c:/Users/PC/Desktop/TinyTownRPG/screens/battlefield.py) | 428 | Screen |
+| [tutorial.py](file:///c:/Users/PC/Desktop/TinyTownRPG/screens/tutorial.py) | 369 | Screen |
+| [dialogue_box.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/dialogue_box.py) | 289 | Component |
+| [settings.py](file:///c:/Users/PC/Desktop/TinyTownRPG/screens/settings.py) | 285 | Screen |
+| [player.py](file:///c:/Users/PC/Desktop/TinyTownRPG/sprites/player.py) | 245 | Sprite |
+| [player_movements.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/player_movements.py) | 213 | Component |
+| [pet.py](file:///c:/Users/PC/Desktop/TinyTownRPG/sprites/pet.py) | 211 | Sprite |
+| [character_selection.py](file:///c:/Users/PC/Desktop/TinyTownRPG/screens/character_selection.py) | 181 | Screen |
+| [pet_inventory.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/pet_inventory.py) | 175 | Component |
+| [battle_mechanics.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/battle_mechanics.py) | 170 | Core |
+| [battle_loader.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/battle_loader.py) | 161 | Core |
+| [map.py](file:///c:/Users/PC/Desktop/TinyTownRPG/screens/map.py) | 158 | Screen |
+| [textbox.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/textbox.py) | 138 | Component |
+| [outro.py](file:///c:/Users/PC/Desktop/TinyTownRPG/screens/outro.py) | 129 | Screen |
+| [queue.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/queue.py) | 121 | Component |
+| [main.py](file:///c:/Users/PC/Desktop/TinyTownRPG/main.py) | 112 | Entry |
+| [npc.py](file:///c:/Users/PC/Desktop/TinyTownRPG/sprites/npc.py) | 105 | Sprite |
+| [button.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/button.py) | 98 | Component |
+| [battle_actions.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/battle_actions.py) | 100 | Component |
+| [config.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/config.py) | 95 | Core |
+| [pause_menu.py](file:///c:/Users/PC/Desktop/TinyTownRPG/components/pause_menu.py) | 80 | Component |
+| [structures.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/structures.py) | 70 | Core |
+| [buildings.py](file:///c:/Users/PC/Desktop/TinyTownRPG/sprites/buildings.py) | 67 | Sprite |
+| [homescreen.py](file:///c:/Users/PC/Desktop/TinyTownRPG/screens/homescreen.py) | 64 | Screen |
+| [shared.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/shared.py) | 56 | Core |
+| [gamedata.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/gamedata.py) | 43 | Core |
+| [structure_location.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/structure_location.py) | 17 | Core |
+| [npc_attributes.py](file:///c:/Users/PC/Desktop/TinyTownRPG/core/npc_attributes.py) | 12 | Core |
+
+---
+
+## Biggest Opportunities (files > 200 lines)
+
+### 1. `battlefield.py` → extract **battle UI** and **music manager** (428 lines → ~200)
+
+This is the largest file. It mixes **rendering**, **state machine logic**, **music management**, and **victory/defeat panels** all in one function.
+
+| What to extract | New module | Approx lines saved |
+|-----------------|-----------|---------------------|
+| Music start/stop/reload logic (repeated 5× in the file) | `core/audio_manager.py` | ~50 |
+| Victory/defeat panel rendering + wait loop (lines 328–420) | `components/battle_result_panel.py` | ~100 |
+| Pet stance loading & sprite updating (repeated 4×) | helper in `core/battle_loader.py` (already exists, just add a method) | ~50 |
+
+**Duplicated music pattern** — this block appears 5 times:
+```python
+pygame.mixer.music.stop()
+bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
+pygame.mixer.music.load(bgm_path)
+if SETTINGS["BGM_ENABLED"]:
+    pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+    pygame.mixer.music.play(-1)
+```
+→ Replace with `audio_manager.resume_bgm()`
+
+---
+
+### 2. `game_engine.py` → extract **drawing** and **event handling** (371 lines → ~180)
+
+The `Game` class has 3 large methods that can be split:
+
+| What to extract | New module | Approx lines saved |
+|-----------------|-----------|---------------------|
+| `draw()` method (lines 247–344) — UI rendering, inventory button, NPC prompt | `core/game_renderer.py` | ~100 |
+| `events()` method (lines 133–207) — input handling, dialogue, battle trigger | `core/game_events.py` | ~80 |
+
+---
+
+### 3. `tutorial.py` → extract **scrolling background** helper (369 lines → ~300)
+
+The scrolling background pattern is repeated in `tutorial.py`, `character_selection.py`, `settings.py`, and `main.py`:
+```python
+for i in range(tiles):
+    SCREEN.blit(bg, (i * bg_width + scroll, 0))
+scroll -= 1.2
+if abs(scroll) > bg_width:
+    scroll = 0
+```
+→ Extract to a shared `draw_scrolling_bg(scroll)` → returns new scroll value. Put it in `core/shared.py`.
+
+---
+
+### 4. `sprites/player.py` + `components/player_movements.py` → **merge or deduplicate** (245 + 213 = 458 lines)
+
+These two files are **near-identical duplicates**.  `GamePlayer` (sprites) and `MapPlayer` (components) share the same:
+- `__init__` constructor
+- `load_animation_set` method
+- `animation()` method (identical 4-direction logic)
+- `movement()` method
+- `update()` method
+
+> [!IMPORTANT]
+> `GamePlayer` has a few extras (hitbox, mask), but `MapPlayer` is otherwise a full copy. **Delete `player_movements.py` entirely** and use `GamePlayer` everywhere. This saves **~213 lines**.
+
+---
+
+### 5. `sprites/pet.py` → extract **pet path resolver** (211 lines → ~170)
+
+The pet value → path mapping (lines 44–62) is a long if/elif chain that should be a dictionary lookup, similar to `get_pet_name()` in `battle_loader.py`:
+
+```python
+PET_PATHS = {
+    1: ("assets/pets/Sausage", "sausage"),
+    2: ("assets/pets/Bear", "bear"),
+    3: ("assets/pets/Germs", "germs"),
+    4: ("assets/pets/Pompoms", "pom"),
+    5: ("assets/pets/Dino", "dino"),
+    6: ("assets/pets/Balls", "balls"),
+}
+```
+→ Add this to `core/config.py` or a new `core/pet_data.py`, and reuse it in both `pet.py` and `battle_loader.py`.
+
+---
+
+### 6. `screens/map.py` → **Camera class is duplicated** with `game_engine.py` (158 lines)
+
+The `Camera` class in `map.py` (lines 11–55) is a near-duplicate of the one in `game_engine.py` (lines 20–45).
+
+→ Extract to `core/camera.py` and import in both files. Saves **~35 lines** from `map.py`.
+
+---
+
+### 7. `settings.py` → extract **slider/toggle widgets** (285 lines → ~180)
+
+`draw_slider()` and `draw_toggle()` are reusable UI components currently embedded inside `SettingsScreen`:
+
+| What to extract | New module | Approx lines saved |
+|-----------------|-----------|---------------------|
+| `draw_slider()` and `draw_toggle()` | `components/ui_widgets.py` | ~60 |
+
+---
+
+## Recommended New Modules Summary
+
+| New Module | Purpose | Contents |
+|-----------|---------|----------|
+| `core/audio_manager.py` | Centralized music control | `play_bgm()`, `stop_bgm()`, `resume_bgm()`, `play_battle_music()`, `play_sfx()` |
+| `core/camera.py` | Shared camera class | `Camera` class (used by `game_engine.py` and `map.py`) |
+| `core/pet_data.py` | Pet name/path registry | `PET_PATHS` dict, `get_pet_name()`, `get_pet_path()` |
+| `components/battle_result_panel.py` | Victory/defeat panel | `show_result_panel()` function |
+| `components/ui_widgets.py` | Reusable UI widgets | `draw_slider()`, `draw_toggle()` |
+
+## Files to Delete
+
+| File | Reason |
+|------|--------|
+| `components/player_movements.py` | Exact duplicate of `sprites/player.py`. Use `GamePlayer` everywhere. |
+
+---
+
+## Quick-Win Summary
+
+| Refactoring | Lines saved | Difficulty |
+|-------------|------------|------------|
+| Delete `player_movements.py` (duplicate) | **~213** | Easy |
+| Extract `core/audio_manager.py` | **~50** from battlefield, cleaner everywhere | Easy |
+| Extract `core/camera.py` | **~35** from map.py | Easy |
+| Extract `scrolling_bg` helper to `shared.py` | **~20** across 4 files | Easy |
+| Extract `battle_result_panel.py` | **~100** from battlefield | Medium |
+| Extract `ui_widgets.py` | **~60** from settings | Medium |
+| Extract game_renderer / game_events | **~180** from game_engine | Medium |
+| **Total lines saved** | **~658** | — |
+
+> [!TIP]
+> Start with the **easy wins** first — deleting the duplicate `player_movements.py` and extracting the `audio_manager` give you the most impact for the least effort.
+
+Would you like me to proceed with implementing any or all of these refactorings?

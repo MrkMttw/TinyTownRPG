@@ -1,4 +1,5 @@
 import json
+import os
 
 WIN_WIDTH = 1280
 WIN_HEIGHT = 720
@@ -10,6 +11,16 @@ PET_SPEED = 1
 PLAYER_LAYER = 1
 PLAYER_SPEED = 1
 SPRINT_MULTIPLIER = 2.0
+
+# Pet data: maps pet value to (path, name) tuple
+PET_PATHS = {
+    1: ("assets/pets/Sausage", "sausage"),
+    2: ("assets/pets/Bear", "bear"),
+    3: ("assets/pets/Germs", "germs"),
+    4: ("assets/pets/Pompoms", "pom"),
+    5: ("assets/pets/Dino", "dino"),
+    6: ("assets/pets/Balls", "balls"),
+}
 
 # Tile visibility: 1 = visible, 2 = invisible
 TILES_VISIBLE = 1
@@ -36,8 +47,9 @@ DEFAULT_SETTINGS = {
 }
 
 # Load settings from JSON file, or use defaults
+settings_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "core", "settings.json")
 try:
-    with open("core/settings.json", "r", encoding="utf-8") as f:
+    with open(settings_path, "r", encoding="utf-8") as f:
         loaded_settings = json.load(f)
         # Merge loaded settings with defaults (in case new settings are added later)
         settings = {**DEFAULT_SETTINGS, **loaded_settings}
@@ -77,7 +89,8 @@ def save_settings(sfx_enabled, sfx_volume, bgm_enabled, bgm_volume, fullscreen):
         "BATTLE_MUSIC_PATH": SETTINGS.get("BATTLE_MUSIC_PATH", DEFAULT_SETTINGS["BATTLE_MUSIC_PATH"]),
         "SFX_PATHS": SETTINGS.get("SFX_PATHS", DEFAULT_SETTINGS["SFX_PATHS"])
     }
-    with open("core/settings.json", "w", encoding="utf-8") as f:
+    settings_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "core", "settings.json")
+    with open(settings_path, "w", encoding="utf-8") as f:
         json.dump(settings_to_save, f, indent=4)
     
     # Update SETTINGS dictionary
