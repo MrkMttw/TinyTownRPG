@@ -3,7 +3,8 @@ import json
 # Initialize game data with default values
 gamedata = {
     "in_game_data": [{"IF_PLAYED": 0, "CHARACTER": 1, "PET": 1}],
-    "player_data": [{"NAME": "", "LEVEL": 1, "XP": 0, "HP": 100}]
+    "player_data": [{"NAME": "", "LEVEL": 1, "XP": 0, "HP": 100}],
+    "pets_collected": [],
 }
 
 try:

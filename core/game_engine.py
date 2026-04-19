@@ -3,7 +3,7 @@ import sys
 from core.config import *
 from core.gamedata import gamedata
 from core.shared import SCREEN, WIN_WIDTH, WIN_HEIGHT, get_font
-from core.npc_location import NPC_POSITIONS
+from core.npc_attributes import NPC_ATTRIBUTES
 from sprites.player import GamePlayer
 from sprites.pet import GamePet
 from sprites.npc import NPC
@@ -11,6 +11,7 @@ from components.dialogue_box import DialogueBox
 from screens.battlefield import battlefield_screen
 from components.queue import queue_screen
 from components.pause_menu import PauseMenu
+from components.pet_inventory import PetInventory
 import math
 
 
@@ -70,6 +71,8 @@ class Game:
         self.running = True
         self.dialogue_box = DialogueBox()
         self.pause_menu = PauseMenu()
+        self.pet_inventory = PetInventory()
+        self.challenged_npc = None  # Store the NPC being challenged
 
         # Map dimensions
         self.map_width = 30 * TILESIZE
@@ -90,15 +93,11 @@ class Game:
         # Create pet
         self.pet = GamePet(self.player)
 
-        # Create NPCs from positions defined in character_location.py
+        # Create NPCs from positions defined in npc_attributes.py
         self.npcs = []
-        for npc_data in NPC_POSITIONS:
-            if len(npc_data) == 4:
-                tile_x, tile_y, sprite_path, name = npc_data
-                dialogue = "Hello there!"
-            else:
-                tile_x, tile_y, sprite_path, name, dialogue = npc_data
-            npc = NPC(tile_x, tile_y, sprite_path, name, dialogue)
+        for npc_data in NPC_ATTRIBUTES:
+            tile_x, tile_y, sprite_path, name, pet, level, dialogue = npc_data
+            npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, dialogue)
             self.npcs.append(npc)
 
         # Background color
@@ -118,13 +117,24 @@ class Game:
             if event.type == pygame.QUIT:
                 self.playing = False
                 self.running = False
+            
+            # Handle inventory input if active
+            if self.pet_inventory.active:
+                self.pet_inventory.handle_input(event)
+                continue
+            
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE and not self.dialogue_box.active:
+                if event.key == pygame.K_ESCAPE and not self.dialogue_box.active and not self.pet_inventory.active:
                     self.pause_menu.toggle()
+                # Handle TAB for inventory (only when not in dialogue or pause menu)
+                if event.key == pygame.K_TAB and not self.dialogue_box.active and not self.pause_menu.active:
+                    self.pet_inventory.toggle()
                 # Handle dialogue input first
                 if self.dialogue_box.active:
                     result = self.dialogue_box.handle_input(event)
                     if result == "battle":
+                        # Store the challenged NPC
+                        self.challenged_npc = self.get_nearby_npc()
                         # Trigger battle
                         player_hp = gamedata["player_data"][0].get("HP", 100)
                         enemy_hp = 100
@@ -132,12 +142,23 @@ class Game:
 
                         while not battle_ended:
                             action_queue = queue_screen()
-                            player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp)
+                            player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp, self.challenged_npc)
                 # Only handle F key for interaction if dialogue is not active and not paused
-                elif event.key == pygame.K_f and not self.pause_menu.active:
+                elif event.key == pygame.K_f and not self.pause_menu.active and not self.pet_inventory.active:
                     nearby_npc = self.get_nearby_npc()
                     if nearby_npc:
                         self.dialogue_box.start_dialogue(nearby_npc.name, nearby_npc.dialogue)
+            
+            # Handle mouse click for inventory button
+            if event.type == pygame.MOUSEBUTTONDOWN and not self.dialogue_box.active and not self.pause_menu.active:
+                inventory_button_width = 120
+                inventory_button_height = 50
+                inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
+                inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
+                inventory_button_rect = pygame.Rect(inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height)
+                
+                if inventory_button_rect.collidepoint(event.pos):
+                    self.pet_inventory.toggle()
 
     def get_nearby_npc(self):
         # Check if player is within 1 tile of any NPC and return that NPC
@@ -213,11 +234,26 @@ class Game:
                 self.screen.blit(obj.image, (screen_x, screen_y))
 
         # Draw UI
-        info_text = get_font(20).render("WASD to move | SHIFT to sprint | F to interact | ESC to pause", True, (255, 255, 255))
+        info_text = get_font(20).render("WASD to move | SHIFT to sprint | F to interact | TAB for inventory | ESC to pause", True, (255, 255, 255))
         self.screen.blit(info_text, (10, 10))
 
         coord_text = get_font(20).render(f"Pos: ({self.player.rect.x // TILESIZE}, {self.player.rect.y // TILESIZE})", True, (255, 255, 255))
         self.screen.blit(coord_text, (10, 35))
+        
+        # Draw inventory button in bottom middle
+        inventory_button_width = 120
+        inventory_button_height = 50
+        inventory_button_x = (WIN_WIDTH - inventory_button_width) // 2
+        inventory_button_y = WIN_HEIGHT - inventory_button_height - 20
+        
+        # Draw button background
+        pygame.draw.rect(self.screen, (100, 100, 150), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height))
+        pygame.draw.rect(self.screen, (150, 150, 200), (inventory_button_x, inventory_button_y, inventory_button_width, inventory_button_height), 2)
+        
+        # Draw button text
+        inventory_text = get_font(20).render("Inventory", True, (255, 255, 255))
+        inventory_text_rect = inventory_text.get_rect(center=(inventory_button_x + inventory_button_width // 2, inventory_button_y + inventory_button_height // 2))
+        self.screen.blit(inventory_text, inventory_text_rect)
 
         # Show interaction prompt when near NPC (only if dialogue is not active)
         nearby_npc = self.get_nearby_npc()
@@ -228,6 +264,9 @@ class Game:
 
         # Draw dialogue box if active
         self.dialogue_box.draw(self.screen)
+
+        # Draw pet inventory if active
+        self.pet_inventory.draw(self.screen)
 
         # Draw pause menu if active
         if self.pause_menu.active:

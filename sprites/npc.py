@@ -19,7 +19,7 @@ class NPC:
         rect: Rectangle for positioning
         mask: Pixel-perfect collision mask
     """
-    def __init__(self, tile_x, tile_y, sprite_path, name="NPC", dialogue="Hello there!"):
+    def __init__(self, tile_x, tile_y, sprite_path, name="NPC", pet=None, level=1, dialogue="Hello there!"):
         """
         Initialize the NPC
         
@@ -28,10 +28,14 @@ class NPC:
             tile_y: Y position in tiles
             sprite_path: Path to NPC sprite image
             name: NPC name
+            pet: Pet name (e.g., "sausage", "balls")
+            level: NPC level
             dialogue: Default dialogue text
         """
         self.name = name
         self.dialogue = dialogue
+        self.pet = pet
+        self.level = level
         self.tile_x = tile_x
         self.tile_y = tile_y
         
