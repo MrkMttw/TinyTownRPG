@@ -1,14 +1,9 @@
-import pygame, sys, math, json
+import pygame, sys
 from core.shared import *
 from screens.homescreen import play, options
-from screens.battlefield import battlefield_screen
-from components.queue import queue_screen
 from screens.tutorial import *
-from core.game_engine import Game
 from components.button import Button
-from components.textbox import TextBox
-from screens.character_selection import character_selection_screen, character_selected
-from core.gamedata import gamedata, update_game_data
+from core.gamedata import update_game_data
 
 pygame.init()
 

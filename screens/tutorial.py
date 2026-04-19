@@ -4,6 +4,7 @@ from components.button import Button
 from components.textbox import TextBox
 from core.config import *
 from screens.character_selection import character_selection_screen
+from core.gamedata import gamedata, update_game_data
 
 
 def character_selection(
@@ -189,4 +190,126 @@ def enter_name(
                         update_game_data,
                     )  # go back
 
+        pygame.display.update()
+
+
+def tutorial_controls():
+    """
+    Tutorial screen that teaches player controls (WASD, TAB, ESC)
+    
+    After completing this tutorial, IF_PLAYED will be set to 1
+    """
+    scroll = 0
+    
+    # Tutorial state: 0 = WASD, 1 = TAB, 2 = ESC, 3 = Complete
+    tutorial_step = 0
+    
+    while True:
+        TUTORIAL_MOUSE_POS = pygame.mouse.get_pos()
+        
+        # Scrolling background
+        for i in range(tiles):
+            SCREEN.blit(bg, (i * bg_width + scroll, 0))
+        
+        scroll -= 1
+        if abs(scroll) > bg_width:
+            scroll = 0
+        
+        # Title
+        TITLE_TEXT = get_font(60).render("TUTORIAL", True, "Black")
+        TITLE_RECT = TITLE_TEXT.get_rect(center=(640, 100))
+        SCREEN.blit(TITLE_TEXT, TITLE_RECT)
+        
+        # Tutorial content based on current step
+        if tutorial_step == 0:
+            # WASD controls
+            INSTRUCTION_TEXT = get_font(35).render("Use WASD to move your character", True, "Black")
+            INSTRUCTION_RECT = INSTRUCTION_TEXT.get_rect(center=(640, 250))
+            SCREEN.blit(INSTRUCTION_TEXT, INSTRUCTION_RECT)
+            
+            KEYS_TEXT = get_font(50).render("W = Up  A = Left  S = Down  D = Right", True, (50, 50, 200))
+            KEYS_RECT = KEYS_TEXT.get_rect(center=(640, 320))
+            SCREEN.blit(KEYS_TEXT, KEYS_RECT)
+            
+            HINT_TEXT = get_font(25).render("Press any WASD key to continue...", True, (100, 100, 100))
+            HINT_RECT = HINT_TEXT.get_rect(center=(640, 450))
+            SCREEN.blit(HINT_TEXT, HINT_RECT)
+            
+        elif tutorial_step == 1:
+            # TAB controls
+            INSTRUCTION_TEXT = get_font(35).render("Press TAB to open pet inventory", True, "Black")
+            INSTRUCTION_RECT = INSTRUCTION_TEXT.get_rect(center=(640, 250))
+            SCREEN.blit(INSTRUCTION_TEXT, INSTRUCTION_RECT)
+            
+            KEYS_TEXT = get_font(50).render("TAB", True, (50, 50, 200))
+            KEYS_RECT = KEYS_TEXT.get_rect(center=(640, 320))
+            SCREEN.blit(KEYS_TEXT, KEYS_RECT)
+            
+            HINT_TEXT = get_font(25).render("Press TAB to continue...", True, (100, 100, 100))
+            HINT_RECT = HINT_TEXT.get_rect(center=(640, 450))
+            SCREEN.blit(HINT_TEXT, HINT_RECT)
+            
+        elif tutorial_step == 2:
+            # ESC controls
+            INSTRUCTION_TEXT = get_font(35).render("Press ESC to pause the game", True, "Black")
+            INSTRUCTION_RECT = INSTRUCTION_TEXT.get_rect(center=(640, 250))
+            SCREEN.blit(INSTRUCTION_TEXT, INSTRUCTION_RECT)
+            
+            KEYS_TEXT = get_font(50).render("ESC", True, (50, 50, 200))
+            KEYS_RECT = KEYS_TEXT.get_rect(center=(640, 320))
+            SCREEN.blit(KEYS_TEXT, KEYS_RECT)
+            
+            HINT_TEXT = get_font(25).render("Press ESC to continue...", True, (100, 100, 100))
+            HINT_RECT = HINT_TEXT.get_rect(center=(640, 450))
+            SCREEN.blit(HINT_TEXT, HINT_RECT)
+            
+        elif tutorial_step == 3:
+            # Tutorial complete
+            INSTRUCTION_TEXT = get_font(40).render("Tutorial Complete!", True, (0, 150, 0))
+            INSTRUCTION_RECT = INSTRUCTION_TEXT.get_rect(center=(640, 250))
+            SCREEN.blit(INSTRUCTION_TEXT, INSTRUCTION_RECT)
+            
+            SUMMARY_TEXT = get_font(30).render("You now know the basic controls.", True, "Black")
+            SUMMARY_RECT = SUMMARY_TEXT.get_rect(center=(640, 320))
+            SCREEN.blit(SUMMARY_TEXT, SUMMARY_RECT)
+            
+            # Continue button
+            CONTINUE_BUTTON = Button(
+                image=BUTTON1,
+                pos=(640, 450),
+                text_input="CONTINUE",
+                font=get_font(35),
+                base_color="BLACK",
+                hovering_color="#FFE14D",
+            )
+            CONTINUE_BUTTON.changeColor(TUTORIAL_MOUSE_POS)
+            CONTINUE_BUTTON.update(SCREEN)
+        
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == pygame.KEYDOWN:
+                if tutorial_step == 0:
+                    # Check for WASD keys
+                    if event.key in [pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d]:
+                        tutorial_step = 1
+                elif tutorial_step == 1:
+                    # Check for TAB
+                    if event.key == pygame.K_TAB:
+                        tutorial_step = 2
+                elif tutorial_step == 2:
+                    # Check for ESC
+                    if event.key == pygame.K_ESCAPE:
+                        tutorial_step = 3
+            
+            if event.type == pygame.MOUSEBUTTONDOWN and tutorial_step == 3:
+                if CONTINUE_BUTTON.checkForInput(TUTORIAL_MOUSE_POS):
+                    # Set IF_PLAYED to 1 after tutorial completion
+                    gamedata["in_game_data"][0]["IF_PLAYED"] = 1
+                    update_game_data()
+                    return
+        
         pygame.display.update()

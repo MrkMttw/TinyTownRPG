@@ -1,0 +1,45 @@
+Map structure
+- structure size is formatted using tilesize in the map
+- the location of the structure is also tilebased
+- add the background
+- uses the parameters (height,width,x,y,file_location) in inserting the structure
+- structure collisions
+
+Game screen
+- add an inventory button in the bottom middle of the screen that accesses the pet inventory system (with custom icon, can also be accessed with TAB). It has a selection but it's locked. It will only be unlocked if they defeated the npc that owns that pet
+- Show opponent name and level above their head
+
+Options
+- turn on/off sound effects
+- turn on/off background music
+- full screen mode
+
+Cutscenes
+- add the intro comic panel in the screen after the player enters the name
+- add the outro comic panel in the screen after the player defeated the final boss
+- the outro will have a screen saying “The Mad Scientist has been defeated” “Thank you adventurer”
+
+Tutorial
+- teach the player WASD to move, TAB to open pet inventory, and ESC to pause - done
+- after this, the IF_PLAYED will be set to 1 - done
+
+Battlefield and npcs
+- change the filename npc_location.py to npc_attributes.py and the NPC_POSITIONS to NPC_ATTRIBUTES
+- change the parameter of the npc to (x,y,”file_location”,”npc_name”,”pet”,level,”dialogue”)
+- use the npc that is challenged by the player as the opponent
+- add the pet in front of the pet owner to the battle screen (both player and npc)
+- make the pet have attack, defense, break armor stance
+- The level of the player and the npc will act as multiplier to their base hp and attack
+- The base hp of the player is 100 and the base attack of the player is 20, the base hp of the npc is 100 and the base attack will be 19.
+
+Sound effects
+- Background music
+- Battle music
+- attack, defend, break armor music
+- victory and defeat sound effect
+- dialogue sounds
+
+Other mechanics
+- After defeating the opponent, it will gain 1 level and it will obtain the pet that the opponent has. It will not level up if the player level is not equal to the npc fought.
+- add pause button in the main game (ESC to use)
+- add pause button in the battlefield (ESC to use)

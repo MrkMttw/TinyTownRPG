@@ -27,10 +27,8 @@ def play():
             gamedata,
             update_game_data,
         )
-        gamedata["in_game_data"][0]["IF_PLAYED"] = 1
-        update_game_data()
-
-    # gamedata["in_game_data"][0]["IF_PLAYED"] = 1
+        # Show tutorial controls (IF_PLAYED will be set to 1 after tutorial completion)
+        tutorial_controls()
 
     game = Game(SCREEN)
     game.new()

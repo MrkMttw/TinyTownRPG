@@ -3,9 +3,9 @@
 
 NPC_POSITIONS = [
     # Test NPCs using boy and girl sprites
-    (5, 5, "assets/characters/Boy/boy_down_stand.png", "Boy NPC", "Hello! Welcome to Tiny Town!"),
-    (8, 8, "assets/characters/Girl/girl_down_stand.png", "Girl NPC", "The weather is nice today, isn't it?"),
-    (12, 6, "assets/characters/Boy/boy_down_stand.png", "Boy NPC 2", "I love exploring this place!"),
-    (15, 10, "assets/characters/Girl/girl_down_stand.png", "Girl NPC 2", "Have you met the other villagers?"),
-    (3, 12, "assets/characters/Boy/boy_down_stand.png", "Boy NPC 3", "Press F to talk to me anytime!"),
+    (5, 5, "assets/npc/aang.png", "Aang Tanga", "Hello! Welcome to Tiny Town!"),
+    (8, 8, "assets/npc/fairy.png", "Fairurut", "The weather is nice today, isn't it?"),
+    (12, 6, "assets/npc/farmer.png", "Local Farmer", "I love exploring this place!"),
+    (15, 10, "assets/npc/femboy.png", "Femboy E-Dater", "Have you met the other villagers?"),
+    (3, 12, "assets/npc/titsir.png", "Titsir", "Press F to talk to me anytime!"),
 ]
