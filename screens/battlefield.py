@@ -54,7 +54,9 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
 
     battle_msg = "A fierce battle begins!"
     msg_timer = 2000
-    state = "message"  # "message", "executing", "game_over"
+    state = "message"  # "message", "stand_before", "action", "stand_after", "game_over"
+    stand_timer = 1000  # Duration for stand animations (1 second)
+    action_timer = 1500  # Duration for action animations (1.5 seconds)
 
     # Queue-based battle system
     current_turn_index = 0
@@ -157,21 +159,15 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                     battle_msg = "VICTORY!" if enemy_hp <= 0 else "DEFEAT!"
                     msg_timer = 3000
                 else:
-                    # Execute next queued turn
+                    # Start next queued turn with stand animation
                     if action_queue and current_turn_index < max_turns:
-                        # Get pre-generated enemy action for this turn
-                        current_enemy_action = enemy_actions[current_turn_index] if current_turn_index < len(enemy_actions) else None
-                        player_action = action_queue[current_turn_index] if current_turn_index < len(action_queue) else "defense"
+                        state = "stand_before"
+                        stand_timer = 1000  # Show stand for 1 second before action
+                        # Set both pets to stand stance
+                        current_player_pet_stance = "stand"
+                        current_enemy_pet_stance = "stand"
                         
-                        # Normalize player action
-                        if player_action == "defend":
-                            player_action = "defense"
-                        
-                        # Update pet stances based on actions
-                        current_player_pet_stance = player_action if player_action in ["attack", "defense", "break"] else "def"
-                        current_enemy_pet_stance = current_enemy_action if current_enemy_action in ["attack", "defense", "break"] else "def"
-                        
-                        # Reload pet sprites with new stances (already scaled in battle_loader)
+                        # Reload pet sprites with stand stance
                         if player_pet_name:
                             new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
                             if new_player_pet:
@@ -182,16 +178,6 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                             if new_enemy_pet:
                                 enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.25)
                                 enemy_pet = pygame.transform.flip(enemy_pet, True, False)
-                        
-                        player_hp, enemy_hp, battle_msg = process_queued_turn(
-                            action_queue, current_turn_index,
-                            player_hp, enemy_hp,
-                            player_attack, enemy_attack,
-                            current_enemy_action
-                        )
-                        current_turn_index += 1
-                        state = "message"
-                        msg_timer = 2500  # Longer delay to read both actions
                     else:
                         # All turns complete or no queue
                         state = "game_over"
@@ -202,6 +188,86 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                         else:
                             battle_msg = "Round Complete!"
                         msg_timer = 3000
+
+        elif state == "stand_before":
+            # Show stand animation before the action
+            stand_timer -= dt
+            if stand_timer <= 0:
+                # Move to action state
+                state = "action"
+                action_timer = 1500  # Show action for 1.5 seconds
+                
+                # Get actions for this turn
+                current_enemy_action = enemy_actions[current_turn_index] if current_turn_index < len(enemy_actions) else None
+                player_action = action_queue[current_turn_index] if current_turn_index < len(action_queue) else "defense"
+                
+                # Normalize player action
+                if player_action == "defend":
+                    player_action = "defense"
+                
+                # Update pet stances based on actions
+                current_player_pet_stance = player_action if player_action in ["attack", "defense", "break"] else "def"
+                current_enemy_pet_stance = current_enemy_action if current_enemy_action in ["attack", "defense", "break"] else "def"
+                
+                # Reload pet sprites with action stances
+                if player_pet_name:
+                    new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
+                    if new_player_pet:
+                        player_pet = pygame.transform.scale_by(new_player_pet, 0.25)
+                
+                if enemy_pet_name:
+                    new_enemy_pet = load_pet_stance(enemy_pet_name, current_enemy_pet_stance)
+                    if new_enemy_pet:
+                        enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.25)
+                        enemy_pet = pygame.transform.flip(enemy_pet, True, False)
+
+        elif state == "action":
+            # Show action animation
+            action_timer -= dt
+            if action_timer <= 0:
+                # Process the turn logic
+                current_enemy_action = enemy_actions[current_turn_index] if current_turn_index < len(enemy_actions) else None
+                player_action = action_queue[current_turn_index] if current_turn_index < len(action_queue) else "defense"
+                
+                if player_action == "defend":
+                    player_action = "defense"
+                
+                player_hp, enemy_hp, battle_msg = process_queued_turn(
+                    action_queue, current_turn_index,
+                    player_hp, enemy_hp,
+                    player_attack, enemy_attack,
+                    current_enemy_action
+                )
+                
+                # Move to stand_after state
+                state = "stand_after"
+                stand_timer = 1000  # Show stand for 1 second after action
+                
+                # Set both pets to stand stance
+                current_player_pet_stance = "stand"
+                current_enemy_pet_stance = "stand"
+                
+                # Reload pet sprites with stand stance
+                if player_pet_name:
+                    new_player_pet = load_pet_stance(player_pet_name, current_player_pet_stance)
+                    if new_player_pet:
+                        player_pet = pygame.transform.scale_by(new_player_pet, 0.25)
+                
+                if enemy_pet_name:
+                    new_enemy_pet = load_pet_stance(enemy_pet_name, current_enemy_pet_stance)
+                    if new_enemy_pet:
+                        enemy_pet = pygame.transform.scale_by(new_enemy_pet, 0.25)
+                        enemy_pet = pygame.transform.flip(enemy_pet, True, False)
+                
+                current_turn_index += 1
+
+        elif state == "stand_after":
+            # Show stand animation after the action
+            stand_timer -= dt
+            if stand_timer <= 0:
+                # Move to message state to show battle result
+                state = "message"
+                msg_timer = 2000
 
         elif state == "game_over":
             # Decrease message timer

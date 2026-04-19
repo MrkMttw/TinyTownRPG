@@ -105,7 +105,8 @@ def load_pet_stance(pet_name, stance):
         "attack": "attack",
         "defense": "def",
         "def": "def",
-        "break": "break"
+        "break": "break",
+        "stand": "stand"
     }
     suffix = stance_map.get(stance, "def")
     

@@ -9,8 +9,10 @@
     "player_data": [
         {
             "NAME": "jacky",
-            "LEVEL": 1
+            "LEVEL": 2
         }
     ],
-    "pets_collected": []
+    "pets_collected": [
+        "bear"
+    ]
 }
