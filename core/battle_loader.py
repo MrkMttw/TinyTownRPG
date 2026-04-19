@@ -26,7 +26,10 @@ def load_battle_assets(npc=None):
         bg = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
         bg.fill((50, 50, 80))
 
-    char_id = gamedata["in_game_data"][0]["CHARACTER"]
+    try:
+        char_id = gamedata["in_game_data"][0]["CHARACTER"]
+    except (KeyError, IndexError):
+        char_id = 1  # Default to Boy character
     print(f"[DEBUG] Character ID: {char_id}")
 
     if char_id == 1:  # Girl
@@ -60,9 +63,12 @@ def load_battle_assets(npc=None):
         right_char = None
 
     # Load player pet
-    player_pet_val = gamedata["in_game_data"][0]["PET"]
-    player_pet_name = get_pet_name(player_pet_val)
-    player_pet = load_pet_stance(player_pet_name, "def")  # Default to defense stance
+    try:
+        player_pet_val = gamedata["in_game_data"][0]["PET"]
+        player_pet_name = get_pet_name(player_pet_val)
+    except (KeyError, IndexError):
+        player_pet_name = None
+    player_pet = load_pet_stance(player_pet_name, "def") if player_pet_name else None  # Default to defense stance
     if player_pet:
         # Scale pet to 25% of original size (smaller for battle)
         player_pet = pygame.transform.scale_by(player_pet, 0.25)

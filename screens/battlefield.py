@@ -39,9 +39,12 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     # Initialize pause menu
     pause_menu = PauseMenu()
 
-    # Load player attributes from gamedata
-    player_data = gamedata["player_data"][0]
-    player_level = player_data.get("LEVEL", 1)
+    # Load player attributes from gamedata with safe access
+    try:
+        player_data = gamedata["player_data"][0]
+        player_level = player_data.get("LEVEL", 1)
+    except (KeyError, IndexError):
+        player_level = 1
     # Base stats: HP=100, Attack=20, multiplied by level
     player_max_hp = 100 * player_level
     player_attack = 20 * player_level
@@ -89,7 +92,11 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     # Pet stance tracking
     current_player_pet_stance = "def"
     current_enemy_pet_stance = "def"
-    player_pet_name = get_pet_name(gamedata["in_game_data"][0]["PET"])
+    try:
+        player_pet_val = gamedata["in_game_data"][0]["PET"]
+        player_pet_name = get_pet_name(player_pet_val)
+    except (KeyError, IndexError):
+        player_pet_name = None
     enemy_pet_name = npc.pet if npc and npc.pet else None
     
     clock = pygame.time.Clock()
@@ -130,9 +137,9 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
         SCREEN.blit(bg, (0, 0))
         
         # Draw pets beside their owners
-        if player_pet and player_pet_rect:
+        if player_pet and player_pet_rect is not None:
             SCREEN.blit(player_pet, player_pet_rect)
-        if enemy_pet and enemy_pet_rect:
+        if enemy_pet and enemy_pet_rect is not None:
             SCREEN.blit(enemy_pet, enemy_pet_rect)
         
 
@@ -184,10 +191,14 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                         
                         # Reload pet sprites with stand stance
                         if player_pet_name:
-                            player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
+                            new_player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
+                            if new_player_pet:
+                                player_pet = new_player_pet
                         
                         if enemy_pet_name:
-                            enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
+                            new_enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
+                            if new_enemy_pet:
+                                enemy_pet = new_enemy_pet
                     else:
                         # All turns complete or no queue
                         state = "game_over"
@@ -229,10 +240,14 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 
                 # Reload pet sprites with action stances
                 if player_pet_name:
-                    player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
+                    new_player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
+                    if new_player_pet:
+                        player_pet = new_player_pet
                 
                 if enemy_pet_name:
-                    enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
+                    new_enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
+                    if new_enemy_pet:
+                        enemy_pet = new_enemy_pet
 
         elif state == "action":
             # Show action animation
@@ -262,10 +277,14 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 
                 # Reload pet sprites with stand stance
                 if player_pet_name:
-                    player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
+                    new_player_pet = update_pet_sprite(player_pet_name, current_player_pet_stance)
+                    if new_player_pet:
+                        player_pet = new_player_pet
                 
                 if enemy_pet_name:
-                    enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
+                    new_enemy_pet = update_pet_sprite(enemy_pet_name, current_enemy_pet_stance, flip_horizontal=True)
+                    if new_enemy_pet:
+                        enemy_pet = new_enemy_pet
                 
                 current_turn_index += 1
 
