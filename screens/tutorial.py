@@ -170,6 +170,7 @@ def enter_name(
                 # Enter pressed, call callback with the name
                 gamedata["player_data"][0]["NAME"] = result
                 update_game_data()
+                intro_comic_panel()
                 return  # proceed to game
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -178,6 +179,7 @@ def enter_name(
                     # Get name from text box
                     gamedata["player_data"][0]["NAME"] = name_textbox.get_text()
                     update_game_data()
+                    intro_comic_panel()
                     return  # proceed to game
                     
                 # Check if Back button was clicked
@@ -190,6 +192,57 @@ def enter_name(
                         update_game_data,
                     )  # go back
 
+        pygame.display.update()
+
+
+def intro_comic_panel():
+    """
+    Intro comic panel screen that displays based on character selection
+    
+    Shows boy_panel if character is 2, girl_panel if character is 1
+    """
+    scroll = 0
+    
+    # Get character ID from gamedata
+    char_id = gamedata["in_game_data"][0]["CHARACTER"]
+    
+    # Select appropriate panel based on character
+    if char_id == 2:
+        panel_image = BOY_PANEL
+    else:
+        panel_image = GIRL_PANEL
+    
+    # Scale panel to fit screen
+    panel_scaled = pygame.transform.scale(panel_image, (WIN_WIDTH, WIN_HEIGHT))
+    
+    while True:
+        MOUSE_POS = pygame.mouse.get_pos()
+        
+        # Draw the comic panel
+        SCREEN.blit(panel_scaled, (0, 0))
+        
+        # Create borderless next button at bottom right
+        NEXT_BUTTON = Button(
+            image=None,
+            pos=(WIN_WIDTH - 100, WIN_HEIGHT - 50),
+            text_input="NEXT",
+            font=get_font(30),
+            base_color="WHITE",
+            hovering_color="#FFE14D",
+        )
+        
+        NEXT_BUTTON.changeColor(MOUSE_POS)
+        NEXT_BUTTON.update(SCREEN)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if NEXT_BUTTON.checkForInput(MOUSE_POS):
+                    return
+        
         pygame.display.update()
 
 

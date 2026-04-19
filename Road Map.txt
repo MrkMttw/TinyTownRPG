@@ -15,7 +15,7 @@ Options
 - full screen mode
 
 Cutscenes
-- add the intro comic panel in the screen after the player enters the name
+- add the intro comic panel in the screen after the player enters the name - done
 - add the outro comic panel in the screen after the player defeated the final boss
 - the outro will have a screen saying “The Mad Scientist has been defeated” “Thank you adventurer”
 
@@ -31,6 +31,7 @@ Battlefield and npcs
 - make the pet have attack, defense, break armor stance
 - The level of the player and the npc will act as multiplier to their base hp and attack
 - The base hp of the player is 100 and the base attack of the player is 20, the base hp of the npc is 100 and the base attack will be 19.
+- add victory and defeat panels
 
 Sound effects
 - Background music
@@ -41,5 +42,5 @@ Sound effects
 
 Other mechanics
 - After defeating the opponent, it will gain 1 level and it will obtain the pet that the opponent has. It will not level up if the player level is not equal to the npc fought.
-- add pause button in the main game (ESC to use)
+- add pause button in the main game (ESC to use) - done
 - add pause button in the battlefield (ESC to use)

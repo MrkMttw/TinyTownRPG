@@ -10,6 +10,7 @@ from sprites.npc import NPC
 from components.dialogue_box import DialogueBox
 from screens.battlefield import battlefield_screen
 from components.queue import queue_screen
+from components.pause_menu import PauseMenu
 import math
 
 
@@ -68,6 +69,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
         self.dialogue_box = DialogueBox()
+        self.pause_menu = PauseMenu()
 
         # Map dimensions
         self.map_width = 30 * TILESIZE
@@ -104,13 +106,21 @@ class Game:
 
     def events(self):
         # Handle game events
+        # If pause menu is active, delegate to pause menu event handler
+        if self.pause_menu.active:
+            result = self.pause_menu.handle_events()
+            if result == "quit":
+                self.playing = False
+                self.running = False
+            return
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.playing = False
                 self.running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE and not self.dialogue_box.active:
-                    self.playing = False
+                    self.pause_menu.toggle()
                 # Handle dialogue input first
                 if self.dialogue_box.active:
                     result = self.dialogue_box.handle_input(event)
@@ -119,12 +129,12 @@ class Game:
                         player_hp = gamedata["player_data"][0].get("HP", 100)
                         enemy_hp = 100
                         battle_ended = False
-                        
+
                         while not battle_ended:
                             action_queue = queue_screen()
                             player_hp, enemy_hp, battle_ended = battlefield_screen(action_queue, player_hp, enemy_hp)
-                # Only handle F key for interaction if dialogue is not active
-                elif event.key == pygame.K_f:
+                # Only handle F key for interaction if dialogue is not active and not paused
+                elif event.key == pygame.K_f and not self.pause_menu.active:
                     nearby_npc = self.get_nearby_npc()
                     if nearby_npc:
                         self.dialogue_box.start_dialogue(nearby_npc.name, nearby_npc.dialogue)
@@ -144,8 +154,8 @@ class Game:
         # Update dialogue box typing animation
         self.dialogue_box.update()
         
-        # Only update player and pet if dialogue is not active
-        if not self.dialogue_box.active:
+        # Only update player and pet if dialogue is not active and game is not paused
+        if not self.dialogue_box.active and not self.pause_menu.active:
             # Store player position before movement
             prev_x = self.player.rect.x
             prev_y = self.player.rect.y
@@ -203,7 +213,7 @@ class Game:
                 self.screen.blit(obj.image, (screen_x, screen_y))
 
         # Draw UI
-        info_text = get_font(20).render("WASD to move | SHIFT to sprint | F to interact | ESC to exit", True, (255, 255, 255))
+        info_text = get_font(20).render("WASD to move | SHIFT to sprint | F to interact | ESC to pause", True, (255, 255, 255))
         self.screen.blit(info_text, (10, 10))
 
         coord_text = get_font(20).render(f"Pos: ({self.player.rect.x // TILESIZE}, {self.player.rect.y // TILESIZE})", True, (255, 255, 255))
@@ -219,6 +229,10 @@ class Game:
         # Draw dialogue box if active
         self.dialogue_box.draw(self.screen)
 
+        # Draw pause menu if active
+        if self.pause_menu.active:
+            self.pause_menu.draw(self.screen)
+
         pygame.display.update()
         self.clock.tick(FPS)
 
@@ -227,6 +241,20 @@ class Game:
         Main game loop
         """
         while self.playing:
-            self.events()
-            self.update()
-            self.draw()
+            if self.pause_menu.active:
+                # Handle pause menu events
+                self.pause_menu.update()
+                result = self.pause_menu.handle_events()
+                if result == "quit":
+                    # Quit to main menu (exit game loop but keep app running)
+                    self.playing = False
+                elif result == "continue":
+                    # Resume game - the toggle was already called in handle_events
+                    pass
+                # Draw game state with pause overlay
+                self.draw()
+            else:
+                # Normal game loop
+                self.events()
+                self.update()
+                self.draw()

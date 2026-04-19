@@ -1,3 +1,5 @@
+import pygame
+
 class Button():
 	"""
 	Button class
@@ -37,9 +39,15 @@ class Button():
 		self.text_input = text_input
 		self.text = self.font.render(self.text_input, True, self.base_color)
 		if self.image is None:
-			# If no image is provided, use the text as the button
-			self.image = self.text
-		self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
+			# If no image is provided, create a proper hitbox with padding
+			text_width = self.text.get_width()
+			text_height = self.text.get_height()
+			padding_x = 40
+			padding_y = 20
+			self.rect = pygame.Rect(0, 0, text_width + padding_x * 2, text_height + padding_y * 2)
+			self.rect.center = (self.x_pos, self.y_pos)
+		else:
+			self.rect = self.image.get_rect(center=(self.x_pos, self.y_pos))
 		self.text_rect = self.text.get_rect(center=(self.x_pos, self.y_pos))
 
 	def update(self, screen):

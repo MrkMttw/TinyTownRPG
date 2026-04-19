@@ -125,7 +125,7 @@ def map_screen():
         SCREEN.blit(player.image, (player_screen_x, player_screen_y))
 
         # Draw UI
-        info_text = get_font(20).render("WASD to move | ESC to exit", True, (255, 255, 255))
+        info_text = get_font(20).render("WASD to move | ESC to pause", True, (255, 255, 255))
         SCREEN.blit(info_text, (10, 10))
 
         # Draw player coordinates

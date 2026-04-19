@@ -19,6 +19,8 @@ bg_width = bg.get_width()
 bg = pygame.transform.scale(bg, (WIN_WIDTH, WIN_HEIGHT))
 BUTTON1 = pygame.image.load("assets/Button1.png")
 BUTTON2 = pygame.image.load("assets/Button2.png")
+BOY_PANEL = pygame.image.load("assets/cutscenes/boy_panel.png")
+GIRL_PANEL = pygame.image.load("assets/cutscenes/girl_panel.png")
 
 # Scrolling variables
 tiles = math.ceil(WIN_WIDTH / bg_width) + 1
