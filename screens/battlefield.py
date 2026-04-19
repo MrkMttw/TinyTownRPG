@@ -6,6 +6,7 @@ from components.pause_menu import PauseMenu
 from core.battle_loader import load_battle_assets, draw_health_bar, load_pet_stance, get_pet_name
 from core.battle_mechanics import process_queued_turn, generate_enemy_actions
 from core.gamedata import gamedata
+from core.config import SETTINGS
 
 def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=None):
     """
@@ -26,17 +27,20 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
     # Pause background music during battle
     pygame.mixer.music.pause()
     
-    # Load battle SFX
-    battle_sfx = pygame.mixer.Sound("assets/esefex/battle_sfx.mp3")
-    battle_sfx.set_volume(0.5)
-    attack_sfx = pygame.mixer.Sound("assets/esefex/attack_sfx.mp3")
-    defense_sfx = pygame.mixer.Sound("assets/esefex/defense_sfx.mp3")
-    breakarmor_sfx = pygame.mixer.Sound("assets/esefex/breakarmor_sfx.mp3")
-    victory_sfx = pygame.mixer.Sound("assets/esefex/victory_sfx.mp3")
-    defeat_sfx = pygame.mixer.Sound("assets/esefex/defeat_sfx.mp3")
+    # Load battle music from settings
+    battle_music_path = SETTINGS.get("BATTLE_MUSIC_PATH", "assets/esefex/battle_sfx.mp3")
+    pygame.mixer.music.load(battle_music_path)
+    if SETTINGS["BGM_ENABLED"]:
+        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+        pygame.mixer.music.play(-1)  # Loop battle music
     
-    # Play battle start SFX
-    battle_sfx.play()
+    # Load sound effects from settings
+    sfx_paths = SETTINGS.get("SFX_PATHS", {})
+    attack_sfx = pygame.mixer.Sound(sfx_paths.get("attack", "assets/esefex/attack_sfx.mp3"))
+    defense_sfx = pygame.mixer.Sound(sfx_paths.get("defense", "assets/esefex/defense_sfx.mp3"))
+    breakarmor_sfx = pygame.mixer.Sound(sfx_paths.get("breakarmor", "assets/esefex/breakarmor_sfx.mp3"))
+    victory_sfx = pygame.mixer.Sound(sfx_paths.get("victory", "assets/esefex/victory_sfx.mp3"))
+    defeat_sfx = pygame.mixer.Sound(sfx_paths.get("defeat", "assets/esefex/defeat_sfx.mp3"))
     
     # Initialize pause menu
     pause_menu = PauseMenu()
@@ -106,9 +110,13 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
         if pause_menu.active:
             pause_result = pause_menu.handle_events()
             if pause_result == "quit":
-                # Stop battle SFX and resume background music before exiting
-                battle_sfx.stop()
-                pygame.mixer.music.unpause()
+                # Stop battle music and reload background music before exiting
+                pygame.mixer.music.stop()
+                bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
+                pygame.mixer.music.load(bgm_path)
+                if SETTINGS["BGM_ENABLED"]:
+                    pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+                    pygame.mixer.music.play(-1)
                 # Exit battle and return to game engine
                 pygame.event.clear()
                 return player_hp, enemy_hp, True
@@ -302,11 +310,16 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                 # Only show panel if battle actually ended (someone's HP <= 0)
                 if player_hp > 0 and enemy_hp > 0:
                     # Round complete with both alive - return without panel
-                    battle_sfx.stop()
+                    pygame.mixer.music.stop()
+                    bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
+                    pygame.mixer.music.load(bgm_path)
+                    if SETTINGS["BGM_ENABLED"]:
+                        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+                        pygame.mixer.music.play(-1)
                     return player_hp, enemy_hp, False
                 
-                # Stop battle SFX before playing victory/defeat sounds
-                battle_sfx.stop()
+                # Stop battle music before playing victory/defeat sounds
+                pygame.mixer.music.stop()
                 
                 # Show victory/defeat panel
                 char_id = gamedata["in_game_data"][0]["CHARACTER"]
@@ -370,11 +383,19 @@ def battlefield_screen(action_queue=None, player_hp=None, enemy_hp=None, npc=Non
                                 sys.exit()
                             if event.type == pygame.MOUSEBUTTONDOWN:
                                 if button_rect.collidepoint(event.pos):
-                                    pygame.mixer.music.unpause()
+                                    bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
+                                    pygame.mixer.music.load(bgm_path)
+                                    if SETTINGS["BGM_ENABLED"]:
+                                        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+                                        pygame.mixer.music.play(-1)
                                     waiting = False
                             if event.type == pygame.KEYDOWN:
                                 if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
-                                    pygame.mixer.music.unpause()
+                                    bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
+                                    pygame.mixer.music.load(bgm_path)
+                                    if SETTINGS["BGM_ENABLED"]:
+                                        pygame.mixer.music.set_volume(SETTINGS["BGM_VOLUME"])
+                                        pygame.mixer.music.play(-1)
                                     waiting = False
                 except FileNotFoundError:
                     print(f"[WARNING] Panel not found: {panel_path}")

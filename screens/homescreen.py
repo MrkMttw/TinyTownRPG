@@ -48,7 +48,7 @@ def play():
 
 
 # ================= OPTIONS =================
-def options():
+def settings():
     """
     Options screen
 

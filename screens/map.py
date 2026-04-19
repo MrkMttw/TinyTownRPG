@@ -78,8 +78,8 @@ def map_screen():
 
     # Create NPCs from attributes defined in npc_attributes.py
     npcs = []
-    for tile_x, tile_y, sprite_path, name, pet, level, dialogue in NPC_ATTRIBUTES:
-        npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, dialogue)
+    for tile_x, tile_y, sprite_path, name, pet, level, sound_fx_location, dialogue in NPC_ATTRIBUTES:
+        npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, sound_fx_location, dialogue)
         npcs.append(npc)
 
     clock = pygame.time.Clock()

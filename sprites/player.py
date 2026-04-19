@@ -170,25 +170,31 @@ class GamePlayer:
         # Apply sprint multiplier when shift is held
         speed = PLAYER_SPEED * SPRINT_MULTIPLIER if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT] else PLAYER_SPEED
 
+        is_moving = False
+
         if keys[pygame.K_a]:
             # Left movement
             self.x_change -= speed
             self.facing = "left"
+            is_moving = True
 
         if keys[pygame.K_d]:
             # Right movement
             self.x_change += speed
             self.facing = "right"
+            is_moving = True
 
         if keys[pygame.K_w]:
             # Up movement
             self.y_change -= speed
             self.facing = "up"
+            is_moving = True
 
         if keys[pygame.K_s]:
             # Down movement
             self.y_change += speed
             self.facing = "down"
+            is_moving = True
 
     def update(self):
         """

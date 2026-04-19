@@ -9,6 +9,9 @@ class NPC:
     Attributes:
         name: NPC name
         dialogue: Default dialogue text
+        pet: Pet name
+        level: NPC level
+        sound_fx_location: Path to sound effect file played on interaction
         tile_x: X position in tiles
         tile_y: Y position in tiles
         x: X position in pixels
@@ -19,7 +22,7 @@ class NPC:
         rect: Rectangle for positioning
         mask: Pixel-perfect collision mask
     """
-    def __init__(self, tile_x, tile_y, sprite_path, name="NPC", pet=None, level=1, dialogue="Hello there!"):
+    def __init__(self, tile_x, tile_y, sprite_path, name="NPC", pet=None, level=1, sound_fx_location=None, dialogue="Hello there!"):
         """
         Initialize the NPC
         
@@ -30,12 +33,14 @@ class NPC:
             name: NPC name
             pet: Pet name (e.g., "sausage", "balls")
             level: NPC level
+            sound_fx_location: Path to sound effect file played on interaction
             dialogue: Default dialogue text
         """
         self.name = name
         self.dialogue = dialogue
         self.pet = pet
         self.level = level
+        self.sound_fx_location = sound_fx_location
         self.sprite_path = sprite_path
         self.tile_x = tile_x
         self.tile_y = tile_y

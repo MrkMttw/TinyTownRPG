@@ -7,8 +7,9 @@ pygame.init()
 # Initialize mixer for audio
 pygame.mixer.init()
 
-# Load background music
-pygame.mixer.music.load("assets/esefex/bg_sfx.mp3")
+# Load background music from settings
+bgm_path = SETTINGS.get("BGM_PATH", "assets/esefex/bg_sfx.mp3")
+pygame.mixer.music.load(bgm_path)
 
 # Play background music if enabled
 if SETTINGS["BGM_ENABLED"]:

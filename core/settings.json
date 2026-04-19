@@ -3,5 +3,17 @@
     "SFX_VOLUME": 0.33,
     "BGM_ENABLED": true,
     "BGM_VOLUME": 0.24333333333333335,
-    "FULLSCREEN": true
+    "FULLSCREEN": true,
+    "BGM_PATH": "assets/esefex/bg_sfx.mp3",
+    "BATTLE_MUSIC_PATH": "assets/esefex/battle_sfx.mp3",
+    "SFX_PATHS": {
+        "attack": "assets/esefex/attack_sfx.mp3",
+        "defense": "assets/esefex/defense_sfx.mp3",
+        "breakarmor": "assets/esefex/breakarmor_sfx.mp3",
+        "victory": "assets/esefex/victory_sfx.mp3",
+        "defeat": "assets/esefex/defeat_sfx.mp3",
+        "boss": "assets/esefex/boss_sfx.mp3",
+        "boy": "assets/esefex/boy_sfx.mp3",
+        "girl": "assets/esefex/girl_sfx.mp3"
+    }
 }

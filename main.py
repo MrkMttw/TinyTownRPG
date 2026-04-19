@@ -1,6 +1,7 @@
 import pygame, sys
 from core.shared import *
-from screens.homescreen import play, options
+from screens.homescreen import play
+from screens.settings import show_settings
 from screens.tutorial import *
 from components.button import Button
 from core.gamedata import update_game_data
@@ -60,7 +61,7 @@ def main_menu():
         OPTIONS_BUTTON = Button(
             image=BUTTON1,
             pos=(380, 510),
-            text_input="OPTIONS",
+            text_input="SETTINGS",
             font=get_font(35),
             base_color="BLACK",
             hovering_color="#FFE14D",
@@ -92,8 +93,8 @@ def main_menu():
                     # Start the game
                     play()
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    # Show options
-                    options()
+                    # Show settings
+                    show_settings()
                     
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     # Quit the game

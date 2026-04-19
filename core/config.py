@@ -20,7 +20,19 @@ DEFAULT_SETTINGS = {
     "SFX_VOLUME": 0.5,
     "BGM_ENABLED": True,
     "BGM_VOLUME": 0.5,
-    "FULLSCREEN": False
+    "FULLSCREEN": False,
+    "BGM_PATH": "assets/esefex/bg_sfx.mp3",
+    "BATTLE_MUSIC_PATH": "assets/esefex/battle_sfx.mp3",
+    "SFX_PATHS": {
+        "attack": "assets/esefex/attack_sfx.mp3",
+        "defense": "assets/esefex/defense_sfx.mp3",
+        "breakarmor": "assets/esefex/breakarmor_sfx.mp3",
+        "victory": "assets/esefex/victory_sfx.mp3",
+        "defeat": "assets/esefex/defeat_sfx.mp3",
+        "boss": "assets/esefex/boss_sfx.mp3",
+        "boy": "assets/esefex/boy_sfx.mp3",
+        "girl": "assets/esefex/girl_sfx.mp3"
+    }
 }
 
 # Load settings from JSON file, or use defaults
@@ -60,7 +72,10 @@ def save_settings(sfx_enabled, sfx_volume, bgm_enabled, bgm_volume, fullscreen):
         "SFX_VOLUME": sfx_volume,
         "BGM_ENABLED": bgm_enabled,
         "BGM_VOLUME": bgm_volume,
-        "FULLSCREEN": fullscreen
+        "FULLSCREEN": fullscreen,
+        "BGM_PATH": SETTINGS.get("BGM_PATH", DEFAULT_SETTINGS["BGM_PATH"]),
+        "BATTLE_MUSIC_PATH": SETTINGS.get("BATTLE_MUSIC_PATH", DEFAULT_SETTINGS["BATTLE_MUSIC_PATH"]),
+        "SFX_PATHS": SETTINGS.get("SFX_PATHS", DEFAULT_SETTINGS["SFX_PATHS"])
     }
     with open("core/settings.json", "w", encoding="utf-8") as f:
         json.dump(settings_to_save, f, indent=4)

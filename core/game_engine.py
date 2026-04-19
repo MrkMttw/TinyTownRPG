@@ -109,8 +109,8 @@ class Game:
         # Create NPCs from positions defined in npc_attributes.py
         self.npcs = []
         for npc_data in NPC_ATTRIBUTES:
-            tile_x, tile_y, sprite_path, name, pet, level, dialogue = npc_data
-            npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, dialogue)
+            tile_x, tile_y, sprite_path, name, pet, level, sound_fx_location, dialogue = npc_data
+            npc = NPC(tile_x, tile_y, sprite_path, name, pet, level, sound_fx_location, dialogue)
             self.npcs.append(npc)
 
     def events(self):
@@ -160,6 +160,13 @@ class Game:
                 elif event.key == pygame.K_f and not self.pause_menu.active and not self.pet_inventory.active:
                     nearby_npc = self.get_nearby_npc()
                     if nearby_npc:
+                        # Play sound effect if available
+                        if nearby_npc.sound_fx_location:
+                            try:
+                                sound = pygame.mixer.Sound(nearby_npc.sound_fx_location)
+                                sound.play()
+                            except pygame.error as e:
+                                print(f"Error loading sound effect: {e}")
                         self.dialogue_box.start_dialogue(nearby_npc.name, nearby_npc.dialogue)
             
             # Handle mouse click for inventory button
